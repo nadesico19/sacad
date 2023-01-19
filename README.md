@@ -46,7 +46,7 @@ import sacad as ac
 
 with ac.instant_acad() as cad:
     width, height, depth = 300, 200, 32
-    trans = cad.dbinsert()
+    trans = cad.db_insert()
 
     trans.layertable.insert_many(
         ac.LayerTableRecord(name=f'LAYER{i}', color=ac.Color(r=j, g=j, b=j))

@@ -16,7 +16,9 @@ from typing import ContextManager, Optional
 
 from sacad.constant import ACAD_LATEST
 from sacad.crud import (
-    DBInserter,
+    DBInsert,
+    DBInsertQuery,
+    ZoomMode,
 )
 from sacad.session import Session
 
@@ -42,12 +44,15 @@ class Acad:
             return self._session
         self._session.close()
 
-    def dbinsert(self, upsert=False) -> DBInserter:
-        return DBInserter(self._session, upsert=upsert)
+    def db_insert(self, upsert=False, zoom_mode: ZoomMode = ZoomMode.NONE,
+                  zoom_scale=1.) -> DBInsert:
+        return DBInsert(self._session, DBInsertQuery(
+            upsert=upsert, zoom_mode=zoom_mode, zoom_scale=zoom_scale))
 
     @property
     def name(self):
         return self._session.acad_name
+
 
 @contextmanager
 def instant_acad(**kwargs) -> ContextManager[Acad]:

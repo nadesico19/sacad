@@ -16,12 +16,16 @@ namespace SacadMgd
 {
     public static class Util
     {
+        public static string Serialize<T>(T value)
+        {
+            return JsonConvert.SerializeObject(value, new JsonSerializerSettings
+                { NullValueHandling = NullValueHandling.Ignore });
+        }
+
         public static T Deserialize<T>(string s)
         {
             return JsonConvert.DeserializeObject<T>(s, new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.Auto,
-            });
+                { TypeNameHandling = TypeNameHandling.Auto });
         }
 
         public static void ConsoleWriteLine(object content)

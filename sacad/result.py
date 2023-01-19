@@ -21,9 +21,9 @@ __all__ = [
 
 
 class Status(IntEnum):
-    UNKNOWN = -1
-    SUCCESS = 0
-    FAILURE = 1
+    UNKNOWN = 0
+    SUCCESS = 1
+    FAILURE = 2
 
 
 @dataclass

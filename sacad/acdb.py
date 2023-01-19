@@ -18,50 +18,51 @@ from typing import Optional, List, Dict
 from sacad.accm import Color
 from sacad.acge import Vector2d, Vector3d
 from sacad.jsonify import Jsonify
+from sacad.util import csharp_polymorphic_type
 
 __all__ = [
     'MODEL_SPACE',
-    'PAPER_SPACE',
+    # 'PAPER_SPACE',
     'ObjectId',
     'Database',
     'LineWeight',
     'DBObject',
     'Entity',
-    'BlockReference',
-    'DBText',
-    'Hatch',
+    # 'BlockReference',
+    # 'DBText',
+    # 'Hatch',
     'Curve',
-    'Arc',
-    'Circle',
-    'Ellipse',
-    'Leader',
-    'Line',
+    # 'Arc',
+    # 'Circle',
+    # 'Ellipse',
+    # 'Leader',
+    # 'Line',
     'Vertex',
     'Polyline',
-    'Polyline2d',
-    'Polyline3d',
-    'Ray',
-    'Spline',
-    'Xline',
-    'Dimension',
-    'AlignedDimension',
-    'ArcDimension',
-    'DiametricDimension',
-    'LineAngularDimension2',
-    'Point3AngularDimension',
-    'RadialDimension',
-    'RadialDimensionLarge',
-    'RotatedDimension',
+    # 'Polyline2d',
+    # 'Polyline3d',
+    # 'Ray',
+    # 'Spline',
+    # 'Xline',
+    # 'Dimension',
+    # 'AlignedDimension',
+    # 'ArcDimension',
+    # 'DiametricDimension',
+    # 'LineAngularDimension2',
+    # 'Point3AngularDimension',
+    # 'RadialDimension',
+    # 'RadialDimensionLarge',
+    # 'RotatedDimension',
     'SymbolTableRecord',
     'BlockTableRecord',
-    'DimStyleTableRecord',
+    # 'DimStyleTableRecord',
     'LayerTableRecord',
-    'LinetypeTableRecord',
-    'TextStyleTableRecord',
+    # 'LinetypeTableRecord',
+    # 'TextStyleTableRecord',
 ]
 
 MODEL_SPACE = '*MODEL_SPACE'
-PAPER_SPACE = '*PAPER_SPACE'
+# PAPER_SPACE = '*PAPER_SPACE'
 
 ObjectId = Optional[int]
 
@@ -98,11 +99,49 @@ class LineWeight(IntEnum):
 
 @dataclass
 class DimStyleCommon:
+    """Common attributes shared between DimStyleTableRecord and Dimension."""
+
+    # Controls the number of precision places displayed in angular dimensions.
+    #          Type: Integer
+    #      Saved in: Drawing
+    # Initial value: 0
+    #            -1: Angular dimensions display the number of decimal places
+    #                specified by DIMDEC.
+    #           0-8: Specifies the number of decimal places displayed in angular
+    #                dimensions (independent of DIMDEC)
     dimadec: Optional[int] = None
+
+    # Controls the display of alternate units in dimensions.
+    #          Type: Switch
+    #      Saved in: Drawing
+    # Initial value: OFF
+    #           OFF: Disables alternate units
+    #            ON: Enables alternate units
     dimalt: Optional[bool] = None
+
+    # Controls the number of decimal places in alternate units.
+    #          Type: Integer
+    #      Saved in: Drawing
+    # Initial value: 2 (imperial) or 3 (metric)
+    # If DIMALT is turned on, DIMALTD sets the number of digits displayed to
+    # the right of the decimal point in the alternate measurement.
     dimaltd: Optional[int] = None
+
+    # Controls the multiplier for alternate units.
+    #          Type: Real
+    #      Saved in: Drawing
+    # Initial value: 25.4000 (imperial) or 0.0394 (metric)
+    # If DIMALT is turned on, DIMALTF multiplies linear dimensions by a
+    # factor to produce a value in an alternate system of measurement. The
+    # initial value represents the number of millimeters in an inch.
     dimaltf: Optional[float] = None
+
+    # Rounds off the alternate dimension units.
+    #          Type: Real
+    #      Saved in: Drawing
+    # Initial value: 0.0000
     dimaltrnd: Optional[float] = None
+
     dimalttd: Optional[int] = None
     dimalttz: Optional[int] = None
     dimaltu: Optional[int] = None
@@ -187,19 +226,19 @@ class Entity(DBObject):
     # TODO
 
 
-@dataclass
-class BlockReference(Entity):
-    pass
+# @dataclass
+# class BlockReference(Entity):
+#     pass
 
 
-@dataclass
-class DBText(Entity):
-    pass
+# @dataclass
+# class DBText(Entity):
+#     pass
 
 
-@dataclass
-class Hatch(Entity):
-    pass
+# @dataclass
+# class Hatch(Entity):
+#     pass
 
 
 @dataclass
@@ -207,31 +246,31 @@ class Curve(Entity):
     pass
 
 
-@dataclass
-class Arc(Curve):
-    pass
+# @dataclass
+# class Arc(Curve):
+#     pass
 
 
-@dataclass
-class Circle(Curve):
-    pass
+# @dataclass
+# class Circle(Curve):
+#     pass
 
 
-@dataclass
-class Ellipse(Curve):
-    pass
+# @dataclass
+# class Ellipse(Curve):
+#     pass
 
 
-@dataclass
-class Leader(Curve):
-    pass
+# @dataclass
+# class Leader(Curve):
+#     pass
 
 
-@dataclass
-class Line(Curve):
-    start_point: Optional[Vector3d] = None
-    end_point: Optional[Vector3d] = None
-    thickness: Optional[float] = None
+# @dataclass
+# class Line(Curve):
+#     start_point: Optional[Vector3d] = None
+#     end_point: Optional[Vector3d] = None
+#     thickness: Optional[float] = None
 
 
 @dataclass
@@ -242,6 +281,7 @@ class Vertex(Jsonify):
     end_width: Optional[float] = None
 
 
+@csharp_polymorphic_type("SacadMgd.Polyline, SacadMgd")
 @dataclass
 class Polyline(Curve):
     closed: Optional[bool] = None
@@ -251,82 +291,77 @@ class Polyline(Curve):
     thickness: Optional[float] = None
     vertices: Optional[List[Vertex]] = None
 
-    def _jsonify_traverse_dict(self, self_dict):
-        result = {"$type": "SacadMgd.Polyline, SacadMgd"}
-        result.update(super()._jsonify_traverse_dict(self_dict))
-        return result
+
+# @dataclass
+# class Polyline2d(Curve):
+#     pass
 
 
-@dataclass
-class Polyline2d(Curve):
-    pass
+# @dataclass
+# class Polyline3d(Curve):
+#     pass
 
 
-@dataclass
-class Polyline3d(Curve):
-    pass
+# @dataclass
+# class Ray(Curve):
+#     pass
 
 
-@dataclass
-class Ray(Curve):
-    pass
+# @dataclass
+# class Spline(Curve):
+#     pass
 
 
-@dataclass
-class Spline(Curve):
-    pass
+# @dataclass
+# class Xline(Curve):
+#     pass
 
 
-@dataclass
-class Xline(Curve):
-    pass
+# @dataclass
+# class Dimension(Entity, DimStyleCommon):
+#     text_position: Optional[Vector3d] = None
+#     text_rotation: Optional[float] = None
+#     # TODO
 
 
-@dataclass
-class Dimension(Entity, DimStyleCommon):
-    text_position: Optional[Vector3d] = None
-    text_rotation: Optional[float] = None
-    # TODO
+# @dataclass
+# class AlignedDimension(Dimension):
+#     pass
 
 
-@dataclass
-class AlignedDimension(Dimension):
-    pass
+# @dataclass
+# class ArcDimension(Dimension):
+#     pass
 
 
-@dataclass
-class ArcDimension(Dimension):
-    pass
+# @dataclass
+# class DiametricDimension(Dimension):
+#     pass
 
 
-@dataclass
-class DiametricDimension(Dimension):
-    pass
+# @dataclass
+# class LineAngularDimension2(Dimension):
+#     pass
 
 
-@dataclass
-class LineAngularDimension2(Dimension):
-    pass
+# @dataclass
+# class Point3AngularDimension(Dimension):
+#     pass
 
 
-@dataclass
-class Point3AngularDimension(Dimension):
-    pass
+# @dataclass
+# class RadialDimension(Dimension):
+#     pass
 
 
-@dataclass
-class RadialDimension(Dimension):
-    pass
+# @dataclass
+# class RadialDimensionLarge(Dimension):
+#     pass
 
 
-@dataclass
-class RadialDimensionLarge(Dimension):
-    pass
-
-
-@dataclass
-class RotatedDimension(Dimension):
-    pass
+# @dataclass
+# class RotatedDimension(Dimension):
+#     pass
 
 
 @dataclass
@@ -334,72 +369,64 @@ class SymbolTableRecord(DBObject):
     name: Optional[str] = None
 
 
+@csharp_polymorphic_type("SacadMgd.BlockTableRecord, SacadMgd")
 @dataclass
 class BlockTableRecord(SymbolTableRecord):
     entities: List[Entity] = field(default_factory=list)
 
-    def _jsonify_traverse_dict(self, self_dict):
-        result = {"$type": "SacadMgd.BlockTableRecord, SacadMgd"}
-        result.update(super()._jsonify_traverse_dict(self_dict))
-        return result
+
+# @dataclass
+# class DimStyleTableRecord(SymbolTableRecord, DimStyleCommon):
+#     pass
 
 
-@dataclass
-class DimStyleTableRecord(SymbolTableRecord, DimStyleCommon):
-    pass
-
-
+@csharp_polymorphic_type("SacadMgd.LayerTableRecord, SacadMgd")
 @dataclass
 class LayerTableRecord(SymbolTableRecord):
     color: Optional[Color] = None
 
-    def _jsonify_traverse_dict(self, self_dict):
-        result = {"$type": "SacadMgd.LayerTableRecord, SacadMgd"}
-        result.update(super()._jsonify_traverse_dict(self_dict))
-        return result
+
+# @dataclass
+# class LinetypeSegment:
+#     dash_length: Optional[float] = None
+#     shape_is_ucs_oriented: Optional[bool] = None
+#     shape_number: Optional[int] = None
+#     shape_offset: Optional[Vector2d] = None
+#     shape_rotation: Optional[float] = None
+#     shape_scale: Optional[float] = None
+#     shape_style: Optional[str] = None
+#     text: Optional[str] = None
 
 
-@dataclass
-class LinetypeSegment:
-    dash_length: Optional[float] = None
-    shape_is_ucs_oriented: Optional[bool] = None
-    shape_number: Optional[int] = None
-    shape_offset: Optional[Vector2d] = None
-    shape_rotation: Optional[float] = None
-    shape_scale: Optional[float] = None
-    shape_style: Optional[str] = None
-    text: Optional[str] = None
+# @dataclass
+# class LinetypeTableRecord(SymbolTableRecord):
+#     comments: Optional[str] = None
+#     segments: Optional[List[LinetypeSegment]] = None
+#
+#     # Accesses the alignment type for the LinetypeTableRecord. If ScaledToFit is
+#     # true, the alignment wll be "scaled to fit" (equivalent to an 'S' in the
+#     # alignment field of the linetype definition). If ScaledToFit is false, the
+#     # alignment will not be "scaled to fit" (equivalent to an 'A' in the
+#     # alignment field of the linetype definition).
+#     is_scaled_to_fit: Optional[bool] = None
+#
+#     # Accesses the length (in AutoCAD drawing units--the pattern will appear
+#     # this length when the linetype scale is 1.0) of the pattern in the
+#     # LinetypeTableRecord. The pattern length is the total length of all dashes
+#     # (including pen up spaces). Embedded shapes or text strings do not add to
+#     # the pattern length because they are overlaid and do not interrupt the
+#     # actual dash pattern. For more information on linetype definitions, see the
+#     # "Linetypes" section of the AutoCAD Customization Guide.
+#     pattern_length: Optional[float] = None
+#
+#     # This function is obsolete and will be eliminated in a future release of
+#     # ObjectARX. Please use Comments instead.
+#     ascii_description: Optional[str] = None
 
 
-@dataclass
-class LinetypeTableRecord(SymbolTableRecord):
-    comments: Optional[str] = None
-    segments: Optional[List[LinetypeSegment]] = None
-
-    # Accesses the alignment type for the LinetypeTableRecord. If ScaledToFit is
-    # true, the alignment wll be "scaled to fit" (equivalent to an 'S' in the
-    # alignment field of the linetype definition). If ScaledToFit is false, the
-    # alignment will not be "scaled to fit" (equivalent to an 'A' in the
-    # alignment field of the linetype definition).
-    is_scaled_to_fit: Optional[bool] = None
-
-    # Accesses the length (in AutoCAD drawing units--the pattern will appear
-    # this length when the linetype scale is 1.0) of the pattern in the
-    # LinetypeTableRecord. The pattern length is the total length of all dashes
-    # (including pen up spaces). Embedded shapes or text strings do not add to
-    # the pattern length because they are overlaid and do not interrupt the
-    # actual dash pattern. For more information on linetype definitions, see the
-    # "Linetypes" section of the AutoCAD Customization Guide.
-    pattern_length: Optional[float] = None
-
-    # This function is obsolete and will be eliminated in a future release of
-    # ObjectARX. Please use Comments instead.
-    ascii_description: Optional[str] = None
-
-
-@dataclass
-class TextStyleTableRecord(SymbolTableRecord):
-    pass
+# @dataclass
+# class TextStyleTableRecord(SymbolTableRecord):
+#     pass
 
 
 @dataclass

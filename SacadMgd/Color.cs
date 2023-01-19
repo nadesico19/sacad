@@ -15,10 +15,6 @@ using AcCm = Autodesk.AutoCAD.Colors;
 
 namespace SacadMgd
 {
-    public class ColorWrapper : PyWrapper<Color>
-    {
-    }
-
     [PyType(Name = "sacad.accm.Color")]
     public class Color : PyObject
     {

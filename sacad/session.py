@@ -29,10 +29,11 @@ __all__ = ['Session']
 class Session:
     def __init__(self, acad_name: str, host: str, port: int):
         self._name = acad_name
-        self._host = f'{host}:{port}'
+        self._host = host
+        self._port = port
         self._skey = str(uuid.uuid1())
 
-        self._req = Requester(host, port)
+        self._req = Requester()
         self._com: Optional[ComAcad] = None
 
         self._precheck()
@@ -47,8 +48,9 @@ class Session:
                 f'SacadMgd.dll for AutoCAD {self._name} is not found.')
 
         self._com.netload(dllpath)
-        self._req.connect(
-            on_listening=lambda: self._com.connect(self._host, self._skey))
+        self._req.connect(self._host, self._port,
+                          on_listening=lambda: self._com.connect(
+                              f'{self._host}:{self._port}', self._skey))
 
         self._ensure_connection()
 
@@ -63,6 +65,10 @@ class Session:
 
         return True
 
+    def reset(self):
+        self._req.disconnect()
+        self._com = None
+
     def close(self):
         self._req.close()
         self._com = None
@@ -72,9 +78,6 @@ class Session:
 
     def doc_operation(self, opcmd: str):
         return self._request(opcmd, self._com.docop)
-
-    def session_operation(self, opcmd: str):
-        return self._request(opcmd, self._com.sessionop)
 
     @property
     def acad_name(self):

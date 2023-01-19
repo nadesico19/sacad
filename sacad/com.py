@@ -90,10 +90,6 @@ class ComAcad:
         cmd = self.buildcmd('SACAD_DOCOP', skey)
         self.sendcmd(cmd)
 
-    def sessionop(self, skey: str):
-        cmd = self.buildcmd('SACAD_SESSIONOP', skey)
-        self.sendcmd(cmd)
-
     @staticmethod
     def buildcmd(*args):
         argstr = '" "'.join(args)

@@ -11,7 +11,10 @@
 
 import asyncio
 
+import sacad.config as config
+
 from asyncio import Future, StreamReader, StreamWriter
+from contextlib import suppress
 from queue import SimpleQueue
 from threading import Thread
 from typing import Callable, Optional
@@ -22,10 +25,7 @@ __all__ = ['Requester']
 
 
 class Requester:
-    def __init__(self, host: str, port: int):
-        self._host = host
-        self._port = port
-
+    def __init__(self):
         self._loop = asyncio.new_event_loop()
         self._thread = Thread(target=self._loop.run_forever)
 
@@ -34,22 +34,17 @@ class Requester:
 
         self._thread.start()
 
-    @property
-    def host(self):
-        return self._host
-
-    @property
-    def port(self):
-        return self._port
-
-    def connect(self, on_listening: Optional[Callable] = None):
+    def connect(self, host: str, port: int,
+                on_listening: Optional[Callable] = None):
         chan = SimpleQueue()
+
+        self._loop.call_later(config.connection_timeout_seconds,
+                              lambda: Requester._stop_listening(chan))
 
         try:
             server = asyncio.run_coroutine_threadsafe(
                 asyncio.start_server(
-                    lambda sr, sw: chan.put((sr, sw)),
-                    self._host, self._port), self._loop
+                    lambda sr, sw: chan.put((sr, sw)), host, port), self._loop
             ).result()
         except Exception as e:
             raise AcadTcpError from e
@@ -60,6 +55,9 @@ class Requester:
         self._reader, self._writer = chan.get()
         server.close()
 
+        if not self._reader or not self._writer:
+            raise AcadTcpError
+
     def request(self, msg: str, encoding='utf-8') -> Future:
         if self.is_disconnected():
             raise AcadTcpError
@@ -68,15 +66,15 @@ class Requester:
             self._request(msg, encoding), self._loop)
 
     def disconnect(self):
-        asyncio.run_coroutine_threadsafe(
-            self._disconnect(), self._loop).result()
+        with suppress(Exception):
+            asyncio.run_coroutine_threadsafe(
+                self._disconnect(), self._loop).result()
+
+        self._reader = self._writer = None
 
     def close(self):
         asyncio.run_coroutine_threadsafe(self._stop(), self._loop)
-
         self._thread.join()
-        self._loop.close()
-
         self._reader = self._writer = None
 
     def is_closed(self):
@@ -92,6 +90,8 @@ class Requester:
             self._writer.writelines([f'{len(request)}\n'.encode(), request])
             await self._writer.drain()
 
+            # TODO request timeout
+
             num_bytes = await self._reader.readline()
             response = await self._reader.readexactly(int(num_bytes))
 
@@ -99,6 +99,10 @@ class Requester:
             raise AcadTcpError from e
 
         return response.decode(encoding)
+
+    @staticmethod
+    def _stop_listening(chan: SimpleQueue):
+        chan.put((None, None))
 
     async def _disconnect(self):
         if self._writer and not self._writer.is_closing():

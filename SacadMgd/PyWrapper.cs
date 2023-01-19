@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace SacadMgd
 {
-    public class PyWrapper<T> where T : PyObject
+    public sealed class PyWrapper<T> where T : PyObject
     {
         public string __cls__;
         public T __mbr__;

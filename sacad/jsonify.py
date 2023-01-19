@@ -10,7 +10,7 @@
 # See the Mulan PSL v2 for more details.
 
 import json
-
+from enum import IntEnum
 from typing import Union, TypeVar
 
 from sacad.error import JsonifyError
@@ -35,7 +35,7 @@ class Jsonify:
 
     def _jsonify_to_dict(self):
         return {
-            CLASS_KEY:  self.__class__._jsonify_classname(),
+            CLASS_KEY: self.__class__._jsonify_classname(),
             MEMBER_KEY: self._jsonify_traverse_dict(self.__dict__)
         }
 
@@ -51,6 +51,8 @@ class Jsonify:
             return self._jsonify_traverse_dict(value)
         elif isinstance(value, (list, tuple, set)):
             return [self._jsonify_traverse(key, e) for e in value]
+        elif isinstance(value, IntEnum):
+            return value
         elif hasattr(value, '__dict__'):
             return self._jsonify_traverse_dict(value.__dict__)
         else:

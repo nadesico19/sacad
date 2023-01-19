@@ -9,6 +9,7 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System.Linq;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcGe = Autodesk.AutoCAD.Geometry;
 
@@ -18,10 +19,6 @@ namespace SacadMgd
 {
     [PyType(Name = "sacad.acdb.Curve")]
     public class Curve : Entity
-    {
-    }
-
-    public class VertexWrapper : PyWrapper<Vertex>
     {
     }
 
@@ -42,25 +39,49 @@ namespace SacadMgd
         public double? elevation;
         public Vector3d normal;
         public double? thickness;
-        public VertexWrapper[] vertices;
+        public PyWrapper<Vertex>[] vertices;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
             obj = obj ?? new AcDb.Polyline();
-            var ent = (AcDb.Polyline)obj;
+            var polyline = (AcDb.Polyline)obj;
+
+            if (closed.HasValue) polyline.Closed = closed.Value;
+            if (constant_width.HasValue) polyline.ConstantWidth = constant_width.Value;
+            if (elevation.HasValue) polyline.Elevation = elevation.Value;
+            if (normal != null) polyline.Normal = normal.ToVector3d();
+            if (thickness.HasValue) polyline.Thickness = thickness.Value;
 
             foreach (var v in vertices)
             {
-                ent.AddVertexAt(ent.NumberOfVertices, (AcGe.Point2d)v.__mbr__.point,
+                polyline.AddVertexAt(polyline.NumberOfVertices, v.__mbr__.point.ToPoint2d(),
                     v.__mbr__.bulge ?? 0, v.__mbr__.start_width ?? 0, v.__mbr__.end_width ?? 0);
             }
 
-            if (normal != null) ent.Normal = (AcGe.Vector3d)normal;
-            if (constant_width.HasValue) ent.ConstantWidth = constant_width.Value;
-            if (elevation.HasValue) ent.Elevation = elevation.Value;
-            if (closed.HasValue) ent.Closed = closed.Value;
-
             return base.ToArx(obj, db);
+        }
+
+        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var polyline = (AcDb.Polyline)obj;
+
+            closed = polyline.Closed;
+            if (!polyline.HasWidth) constant_width = polyline.ConstantWidth;
+            elevation = polyline.Elevation;
+            normal = polyline.Normal;
+            thickness = polyline.Thickness;
+
+            vertices = Enumerable.Range(0, polyline.NumberOfVertices)
+                .Select(i => PyWrapper<Vertex>.Create(new Vertex
+                {
+                    point = polyline.GetPoint2dAt(i),
+                    bulge = polyline.GetBulgeAt(i),
+                    start_width = polyline.GetStartWidthAt(i),
+                    end_width = polyline.GetEndWidthAt(i),
+                }))
+                .ToArray();
+
+            return base.FromArx(obj, db);
         }
     }
 }

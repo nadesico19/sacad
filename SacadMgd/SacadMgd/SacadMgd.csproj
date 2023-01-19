@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{70E54BBA-1D08-4085-9E15-E10EFB30E26B}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>SacadMgd</RootNamespace>
+        <AssemblyName>SacadMgd</AssemblyName>
+        <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>..\..\sacad\dll\2013\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>..\..\sacad\dll\2013\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="accoremgd">
+          <HintPath>AcCoreMgd.dll</HintPath>
+          <Private>False</Private>
+        </Reference>
+        <Reference Include="Acdbmgd">
+          <HintPath>AcDbMgd.dll</HintPath>
+          <Private>False</Private>
+        </Reference>
+        <Reference Include="Acmgd">
+          <HintPath>AcMgd.dll</HintPath>
+          <Private>False</Private>
+        </Reference>
+        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+          <HintPath>..\packages\Newtonsoft.Json.13.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\Color.cs">
+          <Link>Color.cs</Link>
+        </Compile>
+        <Compile Include="..\Curve.cs">
+          <Link>Curve.cs</Link>
+        </Compile>
+        <Compile Include="..\Database.cs">
+          <Link>Database.cs</Link>
+        </Compile>
+        <Compile Include="..\DbHelper.cs">
+          <Link>DbHelper.cs</Link>
+        </Compile>
+        <Compile Include="..\DbQuery.cs">
+          <Link>DbQuery.cs</Link>
+        </Compile>
+        <Compile Include="..\Exception.cs">
+          <Link>Exception.cs</Link>
+        </Compile>
+        <Compile Include="..\Geometry.cs">
+          <Link>Geometry.cs</Link>
+        </Compile>
+        <Compile Include="..\PyWrapper.cs">
+          <Link>PyWrapper.cs</Link>
+        </Compile>
+        <Compile Include="..\Result.cs">
+          <Link>Result.cs</Link>
+        </Compile>
+        <Compile Include="..\Sacad.cs">
+          <Link>Sacad.cs</Link>
+        </Compile>
+        <Compile Include="..\SymbolTableRecord.cs">
+          <Link>SymbolTableRecord.cs</Link>
+        </Compile>
+        <Compile Include="..\Util.cs">
+          <Link>Util.cs</Link>
+        </Compile>
+        <Compile Include="Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="packages.config" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>

@@ -17,10 +17,6 @@ using AcDb = Autodesk.AutoCAD.DatabaseServices;
 
 namespace SacadMgd
 {
-    public class SymbolTableRecordWrapper : PyWrapper<SymbolTableRecord>
-    {
-    }
-
     [PyType(Name = "sacad.acdb.SymbolTableRecord")]
     public class SymbolTableRecord : DbObject
     {
@@ -34,12 +30,12 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public virtual AcDb.SymbolTableRecord GetArxFromSymbolTable(AcDb.Database db)
+        public virtual AcDb.SymbolTableRecord GetFromSymbolTable(AcDb.Database db)
         {
             throw new NotImplementedException();
         }
 
-        public virtual AcDb.ObjectId AddArxToSymbolTable(AcDb.SymbolTableRecord symbol,
+        public virtual AcDb.ObjectId AddToSymbolTable(AcDb.SymbolTableRecord symbol,
             AcDb.Database db)
         {
             throw new NotImplementedException();
@@ -49,13 +45,13 @@ namespace SacadMgd
     [PyType(Name = "sacad.acdb.BlockTableRecord")]
     public class BlockTableRecord : SymbolTableRecord
     {
-        public List<EntityWrapper> entities;
+        public List<PyWrapper<Entity>> entities;
     }
 
     [PyType(Name = "sacad.acdb.LayerTableRecord")]
     public class LayerTableRecord : SymbolTableRecord
     {
-        public ColorWrapper color;
+        public PyWrapper<Color> color;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
@@ -67,10 +63,10 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public override AcDb.SymbolTableRecord GetArxFromSymbolTable(AcDb.Database db) =>
+        public override AcDb.SymbolTableRecord GetFromSymbolTable(AcDb.Database db) =>
             db.GetLayer(name);
 
-        public override AcDb.ObjectId AddArxToSymbolTable(AcDb.SymbolTableRecord symbol,
+        public override AcDb.ObjectId AddToSymbolTable(AcDb.SymbolTableRecord symbol,
             AcDb.Database db) => db.AddLayer((AcDb.LayerTableRecord)symbol);
     }
 }

@@ -9,7 +9,8 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import IntEnum
 from functools import cached_property
 from typing import List, Dict, Iterable
 
@@ -19,39 +20,60 @@ from sacad.acdb import (
     ObjectId,
     MODEL_SPACE,
 )
+from sacad.error import AcadTcpError
 from sacad.jsonify import Jsonify
 from sacad.result import (
     DBInsertResult,
 )
 from sacad.session import Session
+from sacad.util import csharp_polymorphic_type
 
 __all__ = [
-    'DBInserter',
+    'DBInsert',
+    'DBInsertQuery',
+    'ZoomMode',
 ]
 
 
 @dataclass
 class DBQuery(Jsonify):
-    query_type: str
-    database: Database
+    database: Database = field(default_factory=Database)
 
 
+class ZoomMode(IntEnum):
+    NONE = 0
+    ADDED = 1
+    ALL = 2
+
+
+@csharp_polymorphic_type("SacadMgd.DbInsertQuery, SacadMgd")
 @dataclass
 class DBInsertQuery(DBQuery):
-    upsert: bool
-
-    def _jsonify_traverse_dict(self, self_dict):
-        result = {"$type": "SacadMgd.DbInsertQuery, SacadMgd"}
-        result.update(super()._jsonify_traverse_dict(self_dict))
-        return result
+    upsert: bool = False
+    zoom_mode: ZoomMode = ZoomMode.NONE
+    zoom_scale: float = 1.
 
 
-class DBInserter:
-    def __init__(self, session: Session, upsert: bool):
+class DBOperator:
+    def __init__(self, session: Session, db: Database):
         self._session = session
-        self._upsert = upsert
+        self._db = db
 
-        self._db = Database()
+    def _sumbit(self, request: str):
+        try:
+            if not self._session.is_alive():
+                self._session.open()
+
+            return self._session.db_operation(request)
+        except AcadTcpError as e:
+            self._session.reset()
+            raise e
+
+
+class DBInsert(DBOperator):
+    def __init__(self, session: Session, query: DBInsertQuery):
+        super().__init__(session, query.database)
+        self._query = query
 
     @cached_property
     def modelspace(self) -> 'ListInsertProxy':
@@ -63,14 +85,13 @@ class DBInserter:
         return DictInsertProxy(self, self._db.layertable)
 
     def submit(self):
-        query = DBInsertQuery('DB_INSERT', self._db, self._upsert)
-        request = query.serialize()
-        response = self._session.db_operation(request)
+        request = self._query.serialize()
+        response = self._sumbit(request)
         return DBInsertResult.deserialize(response)
 
 
 class ListInsertProxy:
-    def __init__(self, inserter: DBInserter, objects: List[DBObject]):
+    def __init__(self, inserter: DBInsert, objects: List[DBObject]):
         self._ins = inserter
         self._lst = objects
 
@@ -87,7 +108,7 @@ class ListInsertProxy:
 
 
 class DictInsertProxy:
-    def __init__(self, inserter: DBInserter, objects: Dict[str, DBObject]):
+    def __init__(self, inserter: DBInsert, objects: Dict[str, DBObject]):
         self._ins = inserter
         self._dic = objects
 

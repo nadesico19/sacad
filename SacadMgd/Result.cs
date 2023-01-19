@@ -9,19 +9,21 @@
  * See the Mulan PubL v2 for more details.
  */
 
-using Newtonsoft.Json;
-
 // ReSharper disable InconsistentNaming
 
 namespace SacadMgd
 {
+    public enum Status
+    {
+        Unknown,
+        Success,
+        Failure,
+    }
+
     [PyType(Name = "sacad.result.Result")]
     public class Result : PyObject
     {
-        [JsonIgnore] public const int FAILURE = 0;
-        [JsonIgnore] public const int SUCCESS = 1;
-
-        public int status;
+        public Status status;
         public string message;
     }
 

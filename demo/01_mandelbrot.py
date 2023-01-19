@@ -16,7 +16,7 @@ import sacad as ac
 
 def main(cad: ac.Acad):
     width, height, depth = 300, 200, 32
-    trans = cad.dbinsert()
+    trans = cad.db_insert(zoom_mode=ac.ZoomMode.ADDED, zoom_scale=1.5)
 
     trans.layertable.insert_many(
         ac.LayerTableRecord(name=f'LAYER{i}', color=ac.Color(r=j, g=j, b=j))

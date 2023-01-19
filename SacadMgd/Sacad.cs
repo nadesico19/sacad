@@ -16,7 +16,6 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
-using Newtonsoft.Json;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcEi = Autodesk.AutoCAD.EditorInput;
@@ -49,8 +48,8 @@ namespace SacadMgd
                 var client = PromptClientInfo("connect");
                 if (_connKeeper.ContainsKey(client.Skey)) _connKeeper[client.Skey].Close();
 
-                _connKeeper[client.Skey] =
-                    new TcpClient(client.Host, client.Port) { NoDelay = true };
+                _connKeeper[client.Skey] = new TcpClient(client.Host, client.Port)
+                    { NoDelay = true };
             }
             catch (Exception ex)
             {
@@ -76,22 +75,17 @@ namespace SacadMgd
             }
         }
 
-        [AcRt.CommandMethod("SACAD_DOCOP", AcRt.CommandFlags.DocExclusiveLock)]
+        [AcRt.CommandMethod("SACAD_DOCOP", AcRt.CommandFlags.Session)]
         public static void DocOperationCommand()
         {
-            DoOperationCommand("doc operation", Operation.DoDoc);
+            DoOperationCommand("doc operation", message => new Result()); // TODO
         }
 
         [AcRt.CommandMethod("SACAD_DBOP", AcRt.CommandFlags.DocExclusiveLock)]
         public static void DbOperationCommand()
         {
-            DoOperationCommand("db operation", Operation.DoDb);
-        }
-
-        [AcRt.CommandMethod("SACAD_SESSIONOP", AcRt.CommandFlags.Session)]
-        public static void SessionOperationCommand()
-        {
-            DoOperationCommand("session operation", Operation.DoSession);
+            DoOperationCommand("db operation",
+                message => Util.Deserialize<PyWrapper<DbQuery>>(message).__mbr__.Execute());
         }
 
         private static void DoOperationCommand(string cmdTitle, Func<string, Result> opFunc)
@@ -103,7 +97,7 @@ namespace SacadMgd
                 netStream = GetNetStream(cmdTitle);
                 var request = ReceiveMessage(netStream);
                 var result = opFunc.Invoke(request);
-                var response = Serialize(PyWrapper<Result>.Create(result));
+                var response = Util.Serialize(PyWrapper<Result>.Create(result));
                 SendMessage(netStream, response);
             }
             catch (Exception ex)
@@ -114,8 +108,10 @@ namespace SacadMgd
                     try
                     {
                         var result = PyWrapper<Result>.Create(new Result
-                            { status = -1, message = $"Unhandled exception: {ex.Message}" });
-                        SendMessage(netStream, Serialize(result));
+                        {
+                            status = Status.Unknown, message = $"Unhandled exception: {ex.Message}"
+                        });
+                        SendMessage(netStream, Util.Serialize(result));
                     }
                     catch
                     {
@@ -146,7 +142,7 @@ namespace SacadMgd
             {
                 Skey = skeyInput.StringResult,
                 Host = hostPort[0],
-                Port = Int32.Parse(hostPort[1])
+                Port = int.Parse(hostPort[1])
             };
         }
 
@@ -194,7 +190,7 @@ namespace SacadMgd
                 if (b != LineBreak)
                     throw new InvalidDataException("Fail to read body length line.");
 
-                msgLen = Int32.Parse(Encoding.UTF8.GetString(memStream.ToArray()));
+                msgLen = int.Parse(Encoding.UTF8.GetString(memStream.ToArray()));
             }
 
             using (var memStream = new MemoryStream())
@@ -220,12 +216,6 @@ namespace SacadMgd
 
             netStream.Write(lenBytes, 0, lenBytes.Length);
             netStream.Write(bytes, 0, bytes.Length);
-        }
-
-        private static string Serialize<T>(T value)
-        {
-            return JsonConvert.SerializeObject(value,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
         }
 
         private static void RemoveDeadConnections()

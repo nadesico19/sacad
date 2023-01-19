@@ -19,7 +19,7 @@ studio. In my workspace, the target version of .NET Framework is set to v4.6.1.
 Then, add the existing .cs source file under `/SacadMgd/` into the project by
 link or copy.
 
-Next, add the dependent libraries. There are two part of libraries in the
+Next, add the dependent libraries. There are two parts of libraries in the
 dependency.
 
 ### Newtonsoft.Json
@@ -32,9 +32,9 @@ If you have the SDK from version 2010 to 2012, add `AcMgd.dll` and `AcDbMgd.dll`
 to the dependencies of the project.
 
 If you have the SDK version 2013 or later, another `AcCoreMgd.dll` should also
-be added besides the two file listed above.
+be added besides the two files listed above.
 
-Do not forget unchecking `Copy Local` flag, in the property panel of these dll
+Do not forget unchecking `Copy Local` flag, in the property panel of these DLL
 from ObjectARX SDK.
 
 ### Output Files
@@ -51,6 +51,7 @@ version of AutoCAD.
 A typical structure of directory after deployment will be:
 
 ```
+sacad
 └──dll
    ├─2010
    │ ├─Newtonsoft.Json.dll
@@ -61,9 +62,9 @@ A typical structure of directory after deployment will be:
      └─SacadMgd.dll
 ```
 
-When Sacad search for the dll, it walks backward from the version your code have
+When Sacad search for the DLL, it walks backward from the version your code have
 requested. So if you create a client instance for AutoCAD 2020, the search will
-hit the dll under `/sacad/dll/2013`.
+hit the DLL under `/sacad/dll/2013`.
 
 Typically, due to the difference of dependencies between ObjectARX 2012 and
 2013, you should at least build two version of this library, to cover all

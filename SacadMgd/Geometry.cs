@@ -21,17 +21,13 @@ namespace SacadMgd
         public string __cls__ = "sacad.acge.Vector2d";
         public double[] __mbr__;
 
-        [JsonIgnore]
-        public double X
-        {
-            get { return __mbr__[0]; }
-        }
+        [JsonIgnore] public double X => __mbr__[0];
 
-        [JsonIgnore]
-        public double Y
-        {
-            get { return __mbr__[1]; }
-        }
+        [JsonIgnore] public double Y => __mbr__[1];
+
+        public AcGe.Vector2d ToVector2d() => (AcGe.Vector2d)this;
+
+        public AcGe.Point2d ToPoint2d() => (AcGe.Point2d)this;
 
         public static explicit operator AcGe.Vector2d(Vector2d v) =>
             new AcGe.Vector2d(v.X, v.Y);
@@ -51,23 +47,16 @@ namespace SacadMgd
         public string __cls__ = "sacad.acge.Vector3d";
         public double[] __mbr__;
 
-        [JsonIgnore]
-        public double X
-        {
-            get { return __mbr__[0]; }
-        }
+        [JsonIgnore] public double X => __mbr__[0];
 
-        [JsonIgnore]
-        public double Y
-        {
-            get { return __mbr__[1]; }
-        }
+        [JsonIgnore] public double Y => __mbr__[1];
 
-        [JsonIgnore]
-        public double Z
-        {
-            get { return __mbr__[2]; }
-        }
+        [JsonIgnore] public double Z => __mbr__[2];
+
+
+        public AcGe.Vector3d ToVector3d() => (AcGe.Vector3d)this;
+
+        public AcGe.Point3d ToPoint3d() => (AcGe.Point3d)this;
 
         public static explicit operator AcGe.Vector3d(Vector3d v) =>
             new AcGe.Vector3d(v.X, v.Y, v.Z);
