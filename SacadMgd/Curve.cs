@@ -9,6 +9,8 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcGe = Autodesk.AutoCAD.Geometry;
@@ -20,6 +22,12 @@ namespace SacadMgd
     [PyType(Name = "sacad.acdb.Curve")]
     public class Curve : Entity
     {
+        protected static T New<T>(AcDb.Database db) where T : AcDb.Entity, new()
+        {
+            var entity = new T();
+            entity.SetDatabaseDefaults(db);
+            return entity;
+        }
     }
 
     [PyType(Name = "sacad.acdb.Vertex")]
@@ -43,11 +51,10 @@ namespace SacadMgd
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
-            obj = obj ?? new AcDb.Polyline();
+            obj = obj ?? New<AcDb.Polyline>(db);
             var polyline = (AcDb.Polyline)obj;
 
             if (closed.HasValue) polyline.Closed = closed.Value;
-            if (constant_width.HasValue) polyline.ConstantWidth = constant_width.Value;
             if (elevation.HasValue) polyline.Elevation = elevation.Value;
             if (normal != null) polyline.Normal = normal.ToVector3d();
             if (thickness.HasValue) polyline.Thickness = thickness.Value;
@@ -55,7 +62,8 @@ namespace SacadMgd
             foreach (var v in vertices)
             {
                 polyline.AddVertexAt(polyline.NumberOfVertices, v.__mbr__.point.ToPoint2d(),
-                    v.__mbr__.bulge ?? 0, v.__mbr__.start_width ?? 0, v.__mbr__.end_width ?? 0);
+                    v.__mbr__.bulge ?? 0, v.__mbr__.start_width ?? constant_width ?? 0,
+                    v.__mbr__.end_width ?? constant_width ?? 0);
             }
 
             return base.ToArx(obj, db);
@@ -66,7 +74,6 @@ namespace SacadMgd
             var polyline = (AcDb.Polyline)obj;
 
             closed = polyline.Closed;
-            if (!polyline.HasWidth) constant_width = polyline.ConstantWidth;
             elevation = polyline.Elevation;
             normal = polyline.Normal;
             thickness = polyline.Thickness;
@@ -80,6 +87,15 @@ namespace SacadMgd
                     end_width = polyline.GetEndWidthAt(i),
                 }))
                 .ToArray();
+
+            if (polyline.HasWidth && EqualityComparer<double>.Default.Equals(
+                    vertices.Min(
+                        v => Math.Min(v.__mbr__.start_width ?? 0, v.__mbr__.end_width ?? 0)),
+                    vertices.Max(
+                        v => Math.Max(v.__mbr__.start_width ?? 0, v.__mbr__.end_width ?? 0))))
+            {
+                constant_width = polyline.ConstantWidth;
+            }
 
             return base.FromArx(obj, db);
         }

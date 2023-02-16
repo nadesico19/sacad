@@ -27,6 +27,25 @@ namespace SacadMgd
             return null;
         }
 
+        public static AcDb.TextStyleTableRecord GetShapeStyle(this AcDb.Database db, string name)
+        {
+            var trans = db.TransactionManager.TopTransaction;
+            var tbl = (AcDb.TextStyleTable)trans.GetObject(db.TextStyleTableId,
+                AcDb.OpenMode.ForRead);
+
+            foreach (var id in tbl)
+            {
+                if (!id.IsValid) continue;
+
+                var record = (AcDb.TextStyleTableRecord)trans.GetObject(id, AcDb.OpenMode.ForRead);
+                if (!record.IsShapeFile) continue;
+
+                if (record.FileName == name) return record;
+            }
+
+            return null;
+        }
+
         public static AcDb.DimStyleTableRecord GetDimStyle(this AcDb.Database db, string name)
         {
             var trans = db.TransactionManager.TopTransaction;

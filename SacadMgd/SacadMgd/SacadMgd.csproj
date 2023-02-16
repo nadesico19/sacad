@@ -89,6 +89,7 @@
         <Compile Include="..\Util.cs">
           <Link>Util.cs</Link>
         </Compile>
+        <Compile Include="Enums.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>

@@ -19,7 +19,7 @@ def main(cad: ac.Acad):
     trans = cad.db_insert(zoom_mode=ac.ZoomMode.ADDED, zoom_scale=1.5)
 
     trans.layertable.insert_many(
-        ac.LayerTableRecord(name=f'LAYER{i}', color=ac.Color(r=j, g=j, b=j))
+        ac.LayerTableRecord(name=f'LAYER{i}', color=ac.Color.rgb(j, j, j))
         for i, j in map(lambda k: (k, k * 8), range(depth)))
 
     for x, y in itertools.product(range(width), range(height)):

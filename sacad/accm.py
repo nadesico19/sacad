@@ -37,7 +37,12 @@ class ColorMethod(IntEnum):
 
 @dataclass
 class Color(Jsonify):
-    r: Optional[int] = None
-    g: Optional[int] = None
-    b: Optional[int] = None
-    # TODO indexed color
+    color_method: Optional[ColorMethod] = None
+    red: Optional[int] = None
+    green: Optional[int] = None
+    blue: Optional[int] = None
+    color_index: Optional[int] = None
+
+    @staticmethod
+    def rgb(r: int, g: int, b: int) -> 'Color':
+        return Color(red=r, green=g, blue=b, color_method=ColorMethod.BY_COLOR)
