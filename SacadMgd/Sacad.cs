@@ -167,7 +167,13 @@ namespace SacadMgd
             if (!_connKeeper.ContainsKey(skey))
                 throw new InvalidOperationException("No connection established.");
 
-            return _connKeeper[skey].GetStream();
+            var netStream = _connKeeper[skey].GetStream();
+
+            // TODO
+            netStream.ReadTimeout = 10000;
+            netStream.WriteTimeout = 10000;
+
+            return netStream;
         }
 
         private static string ReceiveMessage(NetworkStream netStream)

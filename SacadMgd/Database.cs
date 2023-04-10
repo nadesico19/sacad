@@ -26,7 +26,7 @@ namespace SacadMgd
     [PyType(Name = "sacad.acdb.DBObject")]
     public class DbObject : PyObject
     {
-        public long id;
+        public long? id;
 
         public virtual AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db) => obj;
 

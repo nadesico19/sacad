@@ -9,6 +9,7 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 
@@ -34,5 +35,8 @@ namespace SacadMgd
             var editor = AcAp.Application.DocumentManager.MdiActiveDocument.Editor;
             editor.WriteMessage($"\n{content}");
         }
+
+        public static T? ToOptional<T>(T value) where T : struct
+            => EqualityComparer<T>.Default.Equals(value, default(T)) ? (T?)null : value;
     }
 }

@@ -38,7 +38,7 @@ class Session:
 
         self._precheck()
 
-    def open(self):
+    def open(self, netload=True):
         self._com = ComAcad(env.acad_progid(self._name))
         self._com.show()
 
@@ -47,7 +47,9 @@ class Session:
             raise AcadNotSupportedError(
                 f'SacadMgd.dll for AutoCAD {self._name} is not found.')
 
-        self._com.netload(dllpath)
+        if netload:
+            self._com.netload(dllpath)
+
         self._req.connect(self._host, self._port,
                           on_listening=lambda: self._com.connect(
                               f'{self._host}:{self._port}', self._skey))

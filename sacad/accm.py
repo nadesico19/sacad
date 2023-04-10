@@ -46,3 +46,7 @@ class Color(Jsonify):
     @staticmethod
     def rgb(r: int, g: int, b: int) -> 'Color':
         return Color(red=r, green=g, blue=b, color_method=ColorMethod.BY_COLOR)
+
+    @staticmethod
+    def index(i: int = 0, method: ColorMethod = ColorMethod.NONE):
+        return Color(color_index=i, color_method=method)

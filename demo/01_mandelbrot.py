@@ -26,9 +26,9 @@ def main(cad: ac.Acad):
         xn, yn = xc, yc = float(x) / width * 3 - 2, float(y) / height * 2 - 1
         for i in range(depth):
             if xn ** 2 + yn ** 2 > 4:
-                trans.modelspace.insert(ac.Polyline(
-                    vertices=[ac.Vertex(ac.Vector2d(x - 0.25, y), bulge=1),
-                              ac.Vertex(ac.Vector2d(x + 0.25, y), bulge=1)],
+                trans.modelspace.insert(ac.Polyline.new(
+                    ac.Vertex.new(x - 0.25, y, bulge=1),
+                    ac.Vertex.new(x + 0.25, y, bulge=1),
                     closed=True, constant_width=0.5, layer=f'LAYER{i}'))
                 break
             xn, yn = xn ** 2 - yn ** 2 + xc, 2 * xn * yn + yc

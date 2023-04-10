@@ -35,9 +35,9 @@ class Acad:
             session = Session(acad_name, host, port)
         self._session = session
 
-    def start(self):
+    def start(self, netload=True):
         if not self._session.is_alive():
-            self._session.open()
+            self._session.open(netload=netload)
 
     def stop(self, reuse_session=False) -> Optional[Session]:
         if reuse_session:
@@ -55,10 +55,10 @@ class Acad:
 
 
 @contextmanager
-def instant_acad(**kwargs) -> ContextManager[Acad]:
-    acad = Acad(**kwargs)
+def instant_acad(netload=True, **acad_args) -> ContextManager[Acad]:
+    acad = Acad(**acad_args)
     try:
-        acad.start()
+        acad.start(netload=netload)
         yield acad
     finally:
         acad.stop()

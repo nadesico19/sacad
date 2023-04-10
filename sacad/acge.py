@@ -21,6 +21,7 @@ from sacad.jsonify import Jsonify
 __all__ = [
     'Vector2d',
     'Vector3d',
+    'Number',
 ]
 
 Vector = Union['Vector2d', 'Vector3d']
@@ -68,7 +69,7 @@ class _VectorBase(tuple, Jsonify):
         return self.__new__(type(self), *map(op.neg, self))
 
     def __abs__(self: Vector) -> float:
-        return math.sqrt(sum(map(op.mul, self, self)))
+        return math.hypot(*self)
 
     def __repr__(self: Vector):
         return f'{self.__class__.__name__}({",".join(repr(e) for e in self)})'
@@ -96,6 +97,9 @@ class _VectorBase(tuple, Jsonify):
     @classmethod
     def zaxis(cls) -> Vector:
         return getattr(cls, '_zaxis')
+
+    def normalize(self) -> Vector:
+        return self / abs(self)
 
 
 class Vector2d(_VectorBase):

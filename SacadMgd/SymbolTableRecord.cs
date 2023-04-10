@@ -52,6 +52,12 @@ namespace SacadMgd
     public class LayerTableRecord : SymbolTableRecord
     {
         public PyWrapper<Color> color;
+        public bool? is_frozen;
+        public bool? is_locked;
+        public bool? is_off;
+        public bool? is_plottable;
+        public LineWeight? line_weight;
+        public string linetype;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
@@ -59,6 +65,13 @@ namespace SacadMgd
             var symbol = (AcDb.LayerTableRecord)obj;
 
             if (color != null) symbol.Color = color.__mbr__.ToArx();
+            if (is_frozen.HasValue) symbol.IsFrozen = is_frozen.Value;
+            if (is_locked.HasValue) symbol.IsLocked = is_locked.Value;
+            if (is_off.HasValue) symbol.IsOff = is_off.Value;
+            if (is_plottable.HasValue) symbol.IsPlottable = is_plottable.Value;
+            if (line_weight.HasValue) symbol.LineWeight = (AcDb.LineWeight)line_weight.Value;
+
+            // TODO linetype
 
             return base.ToArx(obj, db);
         }
