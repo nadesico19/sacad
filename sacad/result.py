@@ -24,6 +24,7 @@ class Status(IntEnum):
     UNKNOWN = 0
     SUCCESS = 1
     FAILURE = 2
+    WARNING = 3
 
 
 @dataclass
@@ -36,3 +37,4 @@ class Result(Jsonify):
 class DBInsertResult(Result):
     num_inserted: int = 0
     num_updated: int = 0
+    num_failure: int = 0

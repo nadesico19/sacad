@@ -16,7 +16,7 @@ using AcGe = Autodesk.AutoCAD.Geometry;
 
 namespace SacadMgd
 {
-    public class Vector2d
+    public sealed class Vector2d
     {
         public string __cls__ = "sacad.acge.Vector2d";
         public double[] __mbr__;
@@ -42,7 +42,7 @@ namespace SacadMgd
             new Vector2d { __mbr__ = p.ToArray() };
     }
 
-    public class Vector3d
+    public sealed class Vector3d
     {
         public string __cls__ = "sacad.acge.Vector3d";
         public double[] __mbr__;
@@ -52,7 +52,6 @@ namespace SacadMgd
         [JsonIgnore] public double Y => __mbr__[1];
 
         [JsonIgnore] public double Z => __mbr__[2];
-
 
         public AcGe.Vector3d ToVector3d() => (AcGe.Vector3d)this;
 

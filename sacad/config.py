@@ -9,8 +9,11 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 
+import os
+
 __all__ = []
 
-connection_timeout_seconds = 10
+dll_location = os.path.dirname(os.path.abspath(__file__))
 
+connection_timeout_seconds = 10
 request_timeout_seconds = 10

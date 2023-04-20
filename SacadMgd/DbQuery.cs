@@ -11,8 +11,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Autodesk.AutoCAD.ApplicationServices.Core;
+using Autodesk.AutoCAD.EditorInput;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcGe = Autodesk.AutoCAD.Geometry;
@@ -21,7 +21,7 @@ using AcGe = Autodesk.AutoCAD.Geometry;
 
 namespace SacadMgd
 {
-    public abstract class DbQuery : PyObject
+    public abstract class DbQuery
     {
         public string query_type;
         public PyWrapper<Database> database;
@@ -36,11 +36,13 @@ namespace SacadMgd
         All,
     }
 
-    public class DbInsertQuery : DbQuery
+    public sealed class DbInsertQuery : DbQuery
     {
-        public bool upsert;
-        public ZoomMode zoom_mode;
-        public double zoom_scale;
+        public Vector3d insertion_point;
+        public bool? prompt_insertion_point;
+        public bool? upsert;
+        public ZoomMode? zoom_mode;
+        public double? zoom_factor;
 
         public override Result Execute()
         {
@@ -54,20 +56,35 @@ namespace SacadMgd
                 AcDb.Extents3d extents;
                 using (var trans = db.TransactionManager.StartTransaction())
                 {
-                    InsertSymbol(db, clientDb?.layertable, upsert, ref result.num_inserted,
-                        ref result.num_updated);
+                    // TODO TextStyles
+                    InsertSymbol(db, clientDb?.linetypetable, result);
+                    InsertSymbol(db, clientDb?.layertable, result);
+                    // TODO DimStyles
 
-                    extents = InsertModelSpace(clientDb, db, trans, result,
-                        zoom_mode == ZoomMode.Added);
+                    if (prompt_insertion_point == true)
+                        PromptInsertionPoint(db);
+
+                    extents = InsertModelSpace(clientDb, db, trans, result);
 
                     trans.Commit();
                 }
 
+                if (result.num_inserted + result.num_updated > 0)
+                {
+                    result.status = result.num_failure > 0
+                        ? Status.Warning
+                        : Status.Success;
+                }
+                else
+                {
+                    result.status = result.num_failure > 0
+                        ? Status.Failure
+                        : Status.Success;
+                }
+
                 if (result.status != Status.Failure)
                 {
-                    result.status = Status.Success;
-
-                    if (zoom_mode != ZoomMode.None)
+                    if (zoom_mode.HasValue && zoom_mode != ZoomMode.None)
                     {
                         if (zoom_mode == ZoomMode.All)
                         {
@@ -75,7 +92,7 @@ namespace SacadMgd
                             extents = new AcDb.Extents3d(db.Extmin, db.Extmax);
                         }
 
-                        ZoomExtents(db, extents, zoom_scale);
+                        ZoomExtents(db, extents);
                     }
                 }
             }
@@ -88,82 +105,145 @@ namespace SacadMgd
             return result;
         }
 
-        private static void InsertSymbol(AcDb.Database db,
-            Dictionary<string, PyWrapper<SymbolTableRecord>> symTbl,
-            bool upsert, ref int inserted, ref int updated)
+        private void InsertSymbol<T>(AcDb.Database db,
+            Dictionary<string, PyWrapper<T>> symbolTable, DbInsertResult result)
+            where T : SymbolTableRecord
         {
-            if (symTbl == null) return;
+            if (symbolTable == null) return;
 
             var trans = db.TransactionManager.TopTransaction;
-            Debug.Assert(trans != null, nameof(trans) + " != null");
 
-            foreach (var symbol in symTbl.Values)
+            foreach (var symbol in symbolTable.Values)
             {
-                var oldSymbol = symbol.__mbr__.GetFromSymbolTable(db);
-                if (oldSymbol != null)
+                try
                 {
-                    if (upsert != true) continue;
+                    var oldSymbol = symbol.__mbr__.GetFromSymbolTable(db);
+                    if (oldSymbol != null)
+                    {
+                        if (upsert != null) continue;
 
-                    oldSymbol.UpgradeOpen();
-                    symbol.__mbr__.ToArx(oldSymbol, db);
-                    oldSymbol.DowngradeOpen();
+                        oldSymbol.UpgradeOpen();
+                        symbol.__mbr__.ToArx(oldSymbol, db);
+                        oldSymbol.DowngradeOpen();
 
-                    updated++;
+                        result.num_updated++;
+                    }
+                    else
+                    {
+                        var newSymbol = (AcDb.SymbolTableRecord)symbol.__mbr__
+                            .ToArx(null, db);
+                        symbol.__mbr__.AddToSymbolTable(newSymbol, db);
+                        trans.AddNewlyCreatedDBObject(newSymbol, true);
+
+                        result.num_inserted++;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    var newSymbol = (AcDb.SymbolTableRecord)symbol.__mbr__.ToArx(null, db);
-                    symbol.__mbr__.AddToSymbolTable(newSymbol, db);
-                    trans.AddNewlyCreatedDBObject(newSymbol, true);
-
-                    inserted++;
+                    WriteLog(db,
+                        $"{symbol.__cls__} insertion failed: {ex.Message}");
+                    result.num_failure++;
                 }
             }
         }
 
-        private static AcDb.Extents3d InsertModelSpace(Database clientDb, AcDb.Database db,
-            AcDb.Transaction trans, DbInsertResult result, bool genExtents)
+        private void PromptInsertionPoint(AcDb.Database db)
+        {
+            // ReSharper disable once AccessToStaticMemberViaDerivedType
+            var doc = AcAp.Application.DocumentManager.MdiActiveDocument;
+            if (doc.Database != db) return;
+
+            // ReSharper disable once AccessToStaticMemberViaDerivedType
+            var hWnd = AcAp.Application.MainWindow.Handle;
+            Util.SetForegroundWindow(hWnd);
+
+            var resPoint = doc.Editor.GetPoint(
+                "Please specify the insertion point:");
+            if (resPoint.Status != PromptStatus.OK)
+            {
+                throw new OperationCanceledException(
+                    "Failed to get the insertion point.");
+            }
+
+            insertion_point = resPoint.Value;
+        }
+
+        private AcDb.Extents3d InsertModelSpace(Database clientDb,
+            AcDb.Database db, AcDb.Transaction trans, DbInsertResult result)
         {
             var extents = new AcDb.Extents3d();
-
-            if (clientDb?.blocktable?.ContainsKey(AcDb.BlockTableRecord.ModelSpace) != true)
+            if (clientDb?.blocktable?.ContainsKey(
+                    AcDb.BlockTableRecord.ModelSpace) != true)
                 return extents;
 
-            var modelSpace = (BlockTableRecord)clientDb
+            var transform = insertion_point != null
+                ? AcGe.Matrix3d.Displacement(insertion_point.ToVector3d())
+                : (AcGe.Matrix3d?)null;
+
+            var modelSpace = clientDb
                 .blocktable[AcDb.BlockTableRecord.ModelSpace].__mbr__;
             foreach (var entity in modelSpace.entities)
             {
-                var newEntity = (AcDb.Entity)entity.__mbr__.ToArx(null, db);
-                db.AddToModelSpace(newEntity);
-                trans.AddNewlyCreatedDBObject(newEntity, true);
-
-                if (genExtents && newEntity.Bounds.HasValue)
+                try
                 {
-                    (newEntity as AcDb.Dimension)?.GenerateLayout();
-                    extents.AddExtents(newEntity.GeometricExtents);
-                }
+                    var newEntity = (AcDb.Entity)entity.__mbr__.ToArx(null, db);
 
-                result.num_inserted++;
+                    if (transform.HasValue)
+                        newEntity.TransformBy(transform.Value);
+
+                    db.AddToModelSpace(newEntity);
+                    trans.AddNewlyCreatedDBObject(newEntity, true);
+
+                    if (zoom_mode == ZoomMode.Added &&
+                        newEntity.Bounds.HasValue)
+                    {
+                        (newEntity as AcDb.Dimension)?.GenerateLayout();
+                        extents.AddExtents(newEntity.GeometricExtents);
+                    }
+
+                    result.num_inserted++;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(db,
+                        $"{entity.__cls__} insertion failed: {ex.Message}");
+                    result.num_failure++;
+                }
             }
 
             return extents;
         }
 
-        private static void ZoomExtents(AcDb.Database db, AcDb.Extents3d ext, double scale)
+        private void ZoomExtents(AcDb.Database db, AcDb.Extents3d ext)
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc.Database != db) return;
 
-            if (ext.MinPoint.X >= ext.MaxPoint.X || ext.MinPoint.Y >= ext.MaxPoint.Y)
+            if (ext.MinPoint.X >= ext.MaxPoint.X ||
+                ext.MinPoint.Y >= ext.MaxPoint.Y)
+            {
                 return;
+            }
+
+            var scaleFactor = zoom_factor ?? 1;
 
             var view = doc.Editor.GetCurrentView();
             view.CenterPoint = new AcGe.Point2d(
                 (ext.MinPoint.X + ext.MaxPoint.X) / 2,
                 (ext.MinPoint.Y + ext.MaxPoint.Y) / 2);
-            view.Width = (ext.MaxPoint.X - ext.MinPoint.X) * scale;
-            view.Height = (ext.MaxPoint.Y - ext.MinPoint.Y) * scale;
+            view.Width = (ext.MaxPoint.X - ext.MinPoint.X) * scaleFactor;
+            view.Height = (ext.MaxPoint.Y - ext.MinPoint.Y) * scaleFactor;
+
             doc.Editor.SetCurrentView(view);
+        }
+
+        private void WriteLog(AcDb.Database db, string message)
+        {
+            // ReSharper disable once AccessToStaticMemberViaDerivedType
+            var doc = AcAp.Application.DocumentManager.MdiActiveDocument;
+            if (doc.Database != db) return;
+
+            doc.Editor.WriteMessage($"\n{message}");
         }
     }
 }

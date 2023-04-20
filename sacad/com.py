@@ -10,9 +10,9 @@
 # See the Mulan PSL v2 for more details.
 
 import os.path
+import time
 
 import pythoncom
-import time
 import win32com.client as com
 
 from functools import wraps

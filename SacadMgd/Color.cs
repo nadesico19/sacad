@@ -9,6 +9,7 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System;
 using AcCm = Autodesk.AutoCAD.Colors;
 
 // ReSharper disable InconsistentNaming
@@ -16,7 +17,7 @@ using AcCm = Autodesk.AutoCAD.Colors;
 namespace SacadMgd
 {
     [PyType(Name = "sacad.accm.Color")]
-    public class Color : PyObject
+    public sealed class Color
     {
         public ColorMethod? color_method;
 
@@ -31,8 +32,34 @@ namespace SacadMgd
             var cm = color_method ?? ColorMethod.None;
 
             return cm == ColorMethod.ByColor
-                ? AcCm.Color.FromRgb((byte)(red ?? 0), (byte)(green ?? 0), (byte)(blue ?? 0))
-                : AcCm.Color.FromColorIndex((AcCm.ColorMethod)cm, color_index ?? 0);
+                ? AcCm.Color.FromRgb(
+                    (byte)(red ?? 0), (byte)(green ?? 0), (byte)(blue ?? 0))
+                : AcCm.Color.FromColorIndex(
+                    (AcCm.ColorMethod)Ensure(cm), color_index ?? 0);
         }
+
+        public static Color FromArx(AcCm.Color color)
+        {
+            var result = new Color
+                { color_method = (ColorMethod)color.ColorMethod };
+
+            if (color.ColorMethod == AcCm.ColorMethod.ByColor)
+            {
+                result.red = color.Red;
+                result.green = color.Green;
+                result.blue = color.Blue;
+            }
+            else
+            {
+                result.color_index = color.ColorIndex;
+            }
+
+            return result;
+        }
+
+        private static ColorMethod Ensure(ColorMethod method) =>
+            Enum.IsDefined(typeof(ColorMethod), method)
+                ? method
+                : ColorMethod.None;
     }
 }

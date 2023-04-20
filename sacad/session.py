@@ -11,15 +11,15 @@
 
 import uuid
 
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 from sacad import env
 from sacad.com import ComAcad
 from sacad.constant import ACAD_LATEST
 from sacad.error import (
+    AcadConnectionError,
     AcadNotFoundError,
     AcadNotSupportedError,
-    AcadConnectionError,
 )
 from sacad.io import Requester
 
@@ -50,11 +50,19 @@ class Session:
         if netload:
             self._com.netload(dllpath)
 
-        self._req.connect(self._host, self._port,
-                          on_listening=lambda: self._com.connect(
-                              f'{self._host}:{self._port}', self._skey))
+        self._req.open(self._host, self._port,
+                       on_listening=lambda: self._com.connect(
+                           f'{self._host}:{self._port}', self._skey))
 
         self._ensure_connection()
+
+    def reset(self):
+        self._req.reset()
+        self._com = None
+
+    def close(self):
+        self._req.close()
+        self._com = None
 
     def is_alive(self) -> bool:
         if not self._com:
@@ -66,14 +74,6 @@ class Session:
             return False
 
         return True
-
-    def reset(self):
-        self._req.disconnect()
-        self._com = None
-
-    def close(self):
-        self._req.close()
-        self._com = None
 
     def db_operation(self, opcmd: str):
         return self._request(opcmd, self._com.dbop)

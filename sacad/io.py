@@ -34,8 +34,8 @@ class Requester:
 
         self._thread.start()
 
-    def connect(self, host: str, port: int,
-                on_listening: Optional[Callable] = None):
+    def open(self, host: str, port: int,
+             on_listening: Optional[Callable] = None):
         chan = SimpleQueue()
 
         self._loop.call_later(config.connection_timeout_seconds,
@@ -58,14 +58,7 @@ class Requester:
         if not self._reader or not self._writer:
             raise AcadTcpError
 
-    def request(self, msg: str, encoding='utf-8') -> Future:
-        if self.is_disconnected():
-            raise AcadTcpError
-
-        return asyncio.run_coroutine_threadsafe(
-            self._request(msg, encoding), self._loop)
-
-    def disconnect(self):
+    def reset(self):
         with suppress(Exception):
             asyncio.run_coroutine_threadsafe(
                 self._disconnect(), self._loop).result()
@@ -76,6 +69,13 @@ class Requester:
         asyncio.run_coroutine_threadsafe(self._stop(), self._loop)
         self._thread.join()
         self._reader = self._writer = None
+
+    def request(self, msg: str, encoding='utf-8') -> Future:
+        if self.is_disconnected():
+            raise AcadTcpError
+
+        return asyncio.run_coroutine_threadsafe(
+            self._request(msg, encoding), self._loop)
 
     def is_closed(self):
         return not self._thread.is_alive()

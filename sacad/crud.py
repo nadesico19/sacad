@@ -20,6 +20,7 @@ from sacad.acdb import (
     ObjectId,
     MODEL_SPACE,
 )
+from sacad.acge import Vector3d
 from sacad.error import AcadTcpError
 from sacad.jsonify import Jsonify
 from sacad.result import (
@@ -46,12 +47,13 @@ class ZoomMode(IntEnum):
     ALL = 2
 
 
-@csharp_polymorphic_type("SacadMgd.DbInsertQuery, SacadMgd")
 @dataclass
 class DBInsertQuery(DBQuery):
-    upsert: bool = False
-    zoom_mode: ZoomMode = ZoomMode.NONE
-    zoom_scale: float = 1.
+    insertion_point: Vector3d = None
+    prompt_insertion_point: bool = None
+    upsert: bool = None
+    zoom_mode: ZoomMode = None
+    zoom_factor: float = None
 
 
 class DBOperator:
@@ -75,14 +77,21 @@ class DBInsert(DBOperator):
         super().__init__(session, query.database)
         self._query = query
 
+    @property
+    def query(self):
+        return self._query
+
     @cached_property
     def modelspace(self) -> 'ListInsertProxy':
-        return ListInsertProxy(
-            self, self._db.get_blocktable(MODEL_SPACE).entities)
+        return ListInsertProxy(self, self._db.get_block(MODEL_SPACE).entities)
 
     @cached_property
     def layertable(self) -> 'DictInsertProxy':
         return DictInsertProxy(self, self._db.layertable)
+
+    @cached_property
+    def linetypetable(self) -> 'DictInsertProxy':
+        return DictInsertProxy(self, self._db.linetypetable)
 
     def submit(self):
         request = self._query.serialize()
@@ -123,3 +132,10 @@ class DictInsertProxy:
     def insert_many(self, dbobjs: Iterable[DBObject]):
         for o in dbobjs:
             self.insert(o)
+
+
+# Syntactic sugar of @decorator may somehow break the code completion of IDE
+# (e.g. PyCharm) on @dataclass.
+
+DBInsertQuery = csharp_polymorphic_type("SacadMgd.DbInsertQuery, SacadMgd")(
+    DBInsertQuery)

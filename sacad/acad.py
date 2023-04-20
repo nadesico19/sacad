@@ -12,13 +12,12 @@
 """A facade class for user code to access all features of sacad."""
 
 from contextlib import contextmanager
-from typing import ContextManager, Optional
+from typing import ContextManager
 
 from sacad.constant import ACAD_LATEST
 from sacad.crud import (
     DBInsert,
     DBInsertQuery,
-    ZoomMode,
 )
 from sacad.session import Session
 
@@ -29,25 +28,21 @@ __all__ = [
 
 
 class Acad:
-    def __init__(self, session: Session = None, acad_name=ACAD_LATEST,
-                 host='127.0.0.1', port=48652):
-        if session is None:
-            session = Session(acad_name, host, port)
-        self._session = session
+    def __init__(self, acad_name=ACAD_LATEST, host='127.0.0.1', port=48652):
+        self._session = Session(acad_name, host, port)
 
-    def start(self, netload=True):
+    def open(self, netload=True):
         if not self._session.is_alive():
             self._session.open(netload=netload)
 
-    def stop(self, reuse_session=False) -> Optional[Session]:
-        if reuse_session:
-            return self._session
+    def reset(self):
+        self._session.reset()
+
+    def close(self):
         self._session.close()
 
-    def db_insert(self, upsert=False, zoom_mode: ZoomMode = ZoomMode.NONE,
-                  zoom_scale=1.) -> DBInsert:
-        return DBInsert(self._session, DBInsertQuery(
-            upsert=upsert, zoom_mode=zoom_mode, zoom_scale=zoom_scale))
+    def db_insert(self, **kwargs) -> DBInsert:
+        return DBInsert(self._session, DBInsertQuery(**kwargs))
 
     @property
     def name(self):
@@ -55,10 +50,10 @@ class Acad:
 
 
 @contextmanager
-def instant_acad(netload=True, **acad_args) -> ContextManager[Acad]:
-    acad = Acad(**acad_args)
+def instant_acad(netload=True, **kwargs) -> ContextManager[Acad]:
+    acad = Acad(**kwargs)
     try:
-        acad.start(netload=netload)
+        acad.open(netload=netload)
         yield acad
     finally:
-        acad.stop()
+        acad.close()

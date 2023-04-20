@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace SacadMgd
 {
-    public sealed class PyWrapper<T> where T : PyObject
+    public sealed class PyWrapper<T>
     {
         public string __cls__;
         public T __mbr__;
@@ -31,15 +31,16 @@ namespace SacadMgd
         {
             return new PyWrapper<T>
             {
-                __cls__ = PyObject.PyTypes[pyObject.GetType()],
+                __cls__ = Python.PyTypes[pyObject.GetType()],
                 __mbr__ = pyObject,
             };
         }
     }
 
-    public class PyObject
+    public static class Python
     {
-        internal static readonly Dictionary<Type, string> PyTypes = new Dictionary<Type, string>();
+        internal static readonly Dictionary<Type, string> PyTypes =
+            new Dictionary<Type, string>();
 
         internal static void RegisterAll()
         {
@@ -53,7 +54,7 @@ namespace SacadMgd
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public class PyType : Attribute
+    public sealed class PyType : Attribute
     {
         public string Name { get; set; }
     }

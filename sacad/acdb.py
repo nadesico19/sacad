@@ -13,10 +13,10 @@
 
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 from sacad.accm import Color
-from sacad.acge import Vector2d, Vector3d, Number
+from sacad.acge import Matrix3d, Number, Vector2d, Vector3d
 from sacad.jsonify import Jsonify
 from sacad.util import csharp_polymorphic_type
 
@@ -57,7 +57,8 @@ __all__ = [
     'BlockTableRecord',
     # 'DimStyleTableRecord',
     'LayerTableRecord',
-    # 'LinetypeTableRecord',
+    'LinetypeSegment',
+    'LinetypeTableRecord',
     # 'TextStyleTableRecord',
 ]
 
@@ -621,6 +622,13 @@ class Entity(DBObject):
     linetype_scale: Optional[float] = None
     line_weight: Optional[LineWeight] = None
     visible: Optional[bool] = None
+    transform: Optional[Matrix3d] = None
+
+    def transform_by(self, matrix: Matrix3d):
+        if self.transform is None:
+            self.transform = matrix
+        else:
+            pass  # TODO
 
 
 # @dataclass
@@ -832,42 +840,38 @@ class LayerTableRecord(SymbolTableRecord):
     linetype: Optional[str] = None
 
 
-# @dataclass
-# class LinetypeSegment:
-#     dash_length: Optional[float] = None
-#     shape_is_ucs_oriented: Optional[bool] = None
-#     shape_number: Optional[int] = None
-#     shape_offset: Optional[Vector2d] = None
-#     shape_rotation: Optional[float] = None
-#     shape_scale: Optional[float] = None
-#     shape_style: Optional[str] = None
-#     text: Optional[str] = None
+@dataclass
+class LinetypeSegment(Jsonify):
+    dash_length: Optional[float] = None
+    shape_is_ucs_oriented: Optional[bool] = None
+    shape_number: Optional[int] = None
+    shape_offset: Optional[Vector2d] = None
+    shape_rotation: Optional[float] = None
+    shape_scale: Optional[float] = None
+    shape_style: Optional[str] = None
+    text: Optional[str] = None
 
 
-# @dataclass
-# class LinetypeTableRecord(SymbolTableRecord):
-#     comments: Optional[str] = None
-#     segments: Optional[List[LinetypeSegment]] = None
-#
-#     # Accesses the alignment type for the LinetypeTableRecord. If ScaledToFit is
-#     # true, the alignment wll be "scaled to fit" (equivalent to an 'S' in the
-#     # alignment field of the linetype definition). If ScaledToFit is false, the
-#     # alignment will not be "scaled to fit" (equivalent to an 'A' in the
-#     # alignment field of the linetype definition).
-#     is_scaled_to_fit: Optional[bool] = None
-#
-#     # Accesses the length (in AutoCAD drawing units--the pattern will appear
-#     # this length when the linetype scale is 1.0) of the pattern in the
-#     # LinetypeTableRecord. The pattern length is the total length of all dashes
-#     # (including pen up spaces). Embedded shapes or text strings do not add to
-#     # the pattern length because they are overlaid and do not interrupt the
-#     # actual dash pattern. For more information on linetype definitions, see the
-#     # "Linetypes" section of the AutoCAD Customization Guide.
-#     pattern_length: Optional[float] = None
-#
-#     # This function is obsolete and will be eliminated in a future release of
-#     # ObjectARX. Please use Comments instead.
-#     ascii_description: Optional[str] = None
+@dataclass
+class LinetypeTableRecord(SymbolTableRecord):
+    comments: Optional[str] = None
+    segments: Optional[List[LinetypeSegment]] = None
+
+    # Accesses the alignment type for the LinetypeTableRecord. If ScaledToFit is
+    # true, the alignment wll be "scaled to fit" (equivalent to an 'S' in the
+    # alignment field of the linetype definition). If ScaledToFit is false, the
+    # alignment will not be "scaled to fit" (equivalent to an 'A' in the
+    # alignment field of the linetype definition).
+    is_scaled_to_fit: Optional[bool] = None
+
+    # Accesses the length (in AutoCAD drawing units--the pattern will appear
+    # this length when the linetype scale is 1.0) of the pattern in the
+    # LinetypeTableRecord. The pattern length is the total length of all dashes
+    # (including pen up spaces). Embedded shapes or text strings do not add to
+    # the pattern length because they are overlaid and do not interrupt the
+    # actual dash pattern. For more information on linetype definitions, see the
+    # "Linetypes" section of the AutoCAD Customization Guide.
+    pattern_length: Optional[float] = None
 
 
 # @dataclass
@@ -879,8 +883,9 @@ class LayerTableRecord(SymbolTableRecord):
 class Database(Jsonify):
     blocktable: Dict[str, BlockTableRecord] = field(default_factory=dict)
     layertable: Dict[str, LayerTableRecord] = field(default_factory=dict)
+    linetypetable: Dict[str, LinetypeTableRecord] = field(default_factory=dict)
 
-    def get_blocktable(self, name):
+    def get_block(self, name):
         if name not in self.blocktable:
             self.blocktable[name] = BlockTableRecord()
         return self.blocktable[name]
@@ -893,7 +898,11 @@ Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
 Line = csharp_polymorphic_type("SacadMgd.Line, SacadMgd")(Line)
 Polyline = csharp_polymorphic_type("SacadMgd.Polyline, SacadMgd")(Polyline)
 
-LayerTableRecord = csharp_polymorphic_type(
-    "SacadMgd.LayerTableRecord, SacadMgd")(LayerTableRecord)
 BlockTableRecord = csharp_polymorphic_type(
     "SacadMgd.BlockTableRecord, SacadMgd")(BlockTableRecord)
+LinetypeSegment = csharp_polymorphic_type(
+    "SacadMgd.LinetypeSegment, SacadMgd")(LinetypeSegment)
+LinetypeTableRecord = csharp_polymorphic_type(
+    "SacadMgd.LinetypeTableRecord, SacadMgd")(LinetypeTableRecord)
+LayerTableRecord = csharp_polymorphic_type(
+    "SacadMgd.LayerTableRecord, SacadMgd")(LayerTableRecord)

@@ -12,7 +12,7 @@
 import os
 import winreg
 
-import sacad
+from sacad import config
 
 from typing import List, Optional
 
@@ -83,8 +83,7 @@ def acad_progid(name: str) -> str:
 
 
 def find_dll(name: str) -> Optional[str]:
-    toplevel = os.path.dirname(os.path.abspath(sacad.__file__))
-    dllfolder = os.path.join(toplevel, 'dll')
+    dllfolder = os.path.join(config.dll_location, 'dll')
 
     acad_names_desc = list(reversed(ACAD_NAME_PROGID_MAP.keys()))
     if name not in acad_names_desc:

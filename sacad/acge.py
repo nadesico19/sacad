@@ -14,6 +14,8 @@
 import math
 import operator as op
 
+import numpy as np
+
 from typing import Type, Union
 
 from sacad.jsonify import Jsonify
@@ -22,6 +24,7 @@ __all__ = [
     'Vector2d',
     'Vector3d',
     'Number',
+    'Matrix3d',
 ]
 
 Vector = Union['Vector2d', 'Vector3d']
@@ -164,3 +167,14 @@ class Vector3d(_VectorBase):
                 self.y * (norm.z * norm.y * one_cosa + norm.x * sina) +
                 self.z * (norm.z * norm.z * one_cosa + cosa)
             )
+
+
+class Matrix3d(np.ndarray, Jsonify):
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls, shape=(4, 4), buffer=(
+            args[0] if isinstance(args[0], np.ndarray)
+            else np.array(args, dtype=float)
+        ))
+
+    def _jsonify_traverse_dict(self, self_dict):
+        return list(self.flat)

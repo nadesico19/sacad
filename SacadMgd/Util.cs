@@ -9,7 +9,9 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 
@@ -17,26 +19,34 @@ namespace SacadMgd
 {
     public static class Util
     {
-        public static string Serialize<T>(T value)
+        public static string Serialize<T>(T obj)
         {
-            return JsonConvert.SerializeObject(value, new JsonSerializerSettings
-                { NullValueHandling = NullValueHandling.Ignore });
+            return JsonConvert.SerializeObject(obj,
+                new JsonSerializerSettings
+                    { NullValueHandling = NullValueHandling.Ignore });
         }
 
-        public static T Deserialize<T>(string s)
+        public static T Deserialize<T>(string json)
         {
-            return JsonConvert.DeserializeObject<T>(s, new JsonSerializerSettings
-                { TypeNameHandling = TypeNameHandling.Auto });
+            return JsonConvert.DeserializeObject<T>(json,
+                new JsonSerializerSettings
+                    { TypeNameHandling = TypeNameHandling.Auto });
         }
 
         public static void ConsoleWriteLine(object content)
         {
             // ReSharper disable once AccessToStaticMemberViaDerivedType
-            var editor = AcAp.Application.DocumentManager.MdiActiveDocument.Editor;
+            var editor = AcAp.Application.DocumentManager.MdiActiveDocument
+                .Editor;
             editor.WriteMessage($"\n{content}");
         }
 
         public static T? ToOptional<T>(T value) where T : struct
-            => EqualityComparer<T>.Default.Equals(value, default(T)) ? (T?)null : value;
+            => EqualityComparer<T>.Default.Equals(value, default(T))
+                ? (T?)null
+                : value;
+
+        [DllImport("user32.dll")]
+        public static extern int SetForegroundWindow(IntPtr hwnd);
     }
 }

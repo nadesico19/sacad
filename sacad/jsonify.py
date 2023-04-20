@@ -10,8 +10,9 @@
 # See the Mulan PSL v2 for more details.
 
 import json
+
 from enum import IntEnum
-from typing import Union, TypeVar
+from typing import TypeVar, Union
 
 from sacad.error import JsonifyError
 

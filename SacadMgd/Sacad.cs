@@ -26,12 +26,12 @@ using AcRt = Autodesk.AutoCAD.Runtime;
 
 namespace SacadMgd
 {
-    public class Sacad : AcRt.IExtensionApplication
+    public sealed class Sacad : AcRt.IExtensionApplication
     {
         public void Initialize()
         {
             _connKeeper = new Dictionary<string, TcpClient>();
-            PyObject.RegisterAll();
+            Python.RegisterAll();
         }
 
         public void Terminate()
@@ -46,10 +46,13 @@ namespace SacadMgd
                 RemoveDeadConnections();
 
                 var client = PromptClientInfo("connect");
-                if (_connKeeper.ContainsKey(client.Skey)) _connKeeper[client.Skey].Close();
 
-                _connKeeper[client.Skey] = new TcpClient(client.Host, client.Port)
-                    { NoDelay = true };
+                TcpClient conn;
+                if (_connKeeper.TryGetValue(client.Skey, out conn))
+                    conn.Close();
+
+                _connKeeper[client.Skey] =
+                    new TcpClient(client.Host, client.Port) { NoDelay = true };
             }
             catch (Exception ex)
             {
@@ -65,7 +68,10 @@ namespace SacadMgd
                 var netStream = GetNetStream("ping");
 
                 if (ReceiveMessage(netStream) != "ping")
-                    throw new InvalidDataException($"Wrong ping message \"{netStream}\".");
+                {
+                    throw new InvalidDataException(
+                        $"Wrong ping message \"{netStream}\".");
+                }
 
                 SendMessage(netStream, "pong");
             }
@@ -78,17 +84,20 @@ namespace SacadMgd
         [AcRt.CommandMethod("SACAD_DOCOP", AcRt.CommandFlags.Session)]
         public static void DocOperationCommand()
         {
-            DoOperationCommand("doc operation", message => new Result()); // TODO
+            DoOperationCommand("doc operation", message => new Result());
+            // TODO
         }
 
         [AcRt.CommandMethod("SACAD_DBOP", AcRt.CommandFlags.DocExclusiveLock)]
         public static void DbOperationCommand()
         {
-            DoOperationCommand("db operation",
-                message => Util.Deserialize<PyWrapper<DbQuery>>(message).__mbr__.Execute());
+            DoOperationCommand("db operation", message =>
+                Util.Deserialize<PyWrapper<DbQuery>>(message).__mbr__
+                    .Execute());
         }
 
-        private static void DoOperationCommand(string cmdTitle, Func<string, Result> opFunc)
+        private static void DoOperationCommand(string cmdTitle,
+            Func<string, Result> opFunc)
         {
             NetworkStream netStream = null;
 
@@ -109,7 +118,8 @@ namespace SacadMgd
                     {
                         var result = PyWrapper<Result>.Create(new Result
                         {
-                            status = Status.Unknown, message = $"Unhandled exception: {ex.Message}"
+                            status = Status.Unknown,
+                            message = $"Unhandled exception: {ex.Message}"
                         });
                         SendMessage(netStream, Util.Serialize(result));
                     }
@@ -123,9 +133,11 @@ namespace SacadMgd
         private static ClientInfo PromptClientInfo(string cmdName)
         {
             // ReSharper disable once AccessToStaticMemberViaDerivedType
-            var editor = AcAp.Application.DocumentManager.MdiActiveDocument.Editor;
+            var editor = AcAp.Application.DocumentManager.MdiActiveDocument
+                .Editor;
 
-            var option = new AcEi.PromptStringOptions(string.Empty) { AllowSpaces = false };
+            var option = new AcEi.PromptStringOptions(string.Empty)
+                { AllowSpaces = false };
 
             option.Message = $"\n[sacad {cmdName}] host info: ";
             var hostInput = editor.GetString(option);
@@ -149,10 +161,11 @@ namespace SacadMgd
         private static string PromptSkey(string cmdName)
         {
             // ReSharper disable once AccessToStaticMemberViaDerivedType
-            var editor = AcAp.Application.DocumentManager.MdiActiveDocument.Editor;
+            var editor = AcAp.Application.DocumentManager.MdiActiveDocument
+                .Editor;
 
-            var option = new AcEi.PromptStringOptions($"\n[sacad {cmdName}] session key: ")
-                { AllowSpaces = false };
+            var option = new AcEi.PromptStringOptions(
+                $"\n[sacad {cmdName}] session key: ") { AllowSpaces = false };
 
             var skeyInput = editor.GetString(option);
             if (skeyInput.Status != AcEi.PromptStatus.OK)
@@ -165,7 +178,10 @@ namespace SacadMgd
         {
             var skey = PromptSkey(cmdInfo);
             if (!_connKeeper.ContainsKey(skey))
-                throw new InvalidOperationException("No connection established.");
+            {
+                throw new InvalidOperationException(
+                    "No connection established.");
+            }
 
             var netStream = _connKeeper[skey].GetStream();
 
@@ -179,7 +195,10 @@ namespace SacadMgd
         private static string ReceiveMessage(NetworkStream netStream)
         {
             if (!netStream.CanRead)
-                throw new InvalidOperationException("NetworkStream cannot read.");
+            {
+                throw new InvalidOperationException(
+                    "NetworkStream cannot read.");
+            }
 
             int msgLen;
             using (var memStream = new MemoryStream())
@@ -188,15 +207,24 @@ namespace SacadMgd
                 while (true)
                 {
                     b = netStream.ReadByte();
-                    if (b == -1) throw new EndOfStreamException("EOF while reading body length.");
+                    if (b == -1)
+                    {
+                        throw new EndOfStreamException(
+                            "EOF while reading body length.");
+                    }
+
                     if (b == LineBreak) break;
                     memStream.WriteByte((byte)b);
                 }
 
                 if (b != LineBreak)
-                    throw new InvalidDataException("Fail to read body length line.");
+                {
+                    throw new InvalidDataException(
+                        "Fail to read body length line.");
+                }
 
-                msgLen = int.Parse(Encoding.UTF8.GetString(memStream.ToArray()));
+                msgLen = int.Parse(Encoding.UTF8.GetString(
+                    memStream.ToArray()));
             }
 
             using (var memStream = new MemoryStream())
@@ -215,7 +243,10 @@ namespace SacadMgd
         private static void SendMessage(NetworkStream netStream, string msg)
         {
             if (!netStream.CanWrite)
-                throw new InvalidOperationException("NetworkStream cannot write.");
+            {
+                throw new InvalidOperationException(
+                    "NetworkStream cannot write.");
+            }
 
             var bytes = Encoding.UTF8.GetBytes(msg);
             var lenBytes = Encoding.UTF8.GetBytes($"{bytes.Length}\n");
@@ -229,9 +260,13 @@ namespace SacadMgd
             var ipProperties = IPGlobalProperties.GetIPGlobalProperties();
             var tcpConnections = ipProperties.GetActiveTcpConnections();
 
-            var toBeRemove = _connKeeper.Where(conn => !tcpConnections.Any(activeConn =>
-                    activeConn.LocalEndPoint.Equals(conn.Value.Client.LocalEndPoint) &&
-                    activeConn.RemoteEndPoint.Equals(conn.Value.Client.RemoteEndPoint)))
+            var toBeRemove = _connKeeper
+                .Where(conn => !tcpConnections.Any(
+                    activeConn =>
+                        activeConn.LocalEndPoint.Equals(conn.Value.Client
+                            .LocalEndPoint) &&
+                        activeConn.RemoteEndPoint.Equals(conn.Value.Client
+                            .RemoteEndPoint)))
                 .ToArray();
 
             foreach (var conn in toBeRemove) _connKeeper.Remove(conn.Key);
@@ -248,7 +283,9 @@ namespace SacadMgd
             public int Port;
         }
 
-        private static readonly int LineBreak = Encoding.UTF8.GetBytes("\n").First();
+        private static readonly int LineBreak =
+            Encoding.UTF8.GetBytes("\n").First();
+
         private static readonly byte[] ReadBuf = new byte[4096];
         private static Dictionary<string, TcpClient> _connKeeper;
     }

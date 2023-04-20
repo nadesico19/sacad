@@ -31,7 +31,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.Arc")]
-    public class Arc : Curve
+    public sealed class Arc : Curve
     {
         public Vector3d center;
         public Vector3d normal;
@@ -58,8 +58,30 @@ namespace SacadMgd
         // TODO FromArx
     }
 
+    [PyType(Name = "sacad.acdb.Line")]
+    public sealed class Line : Curve
+    {
+        public Vector3d start_point;
+        public Vector3d end_point;
+        public double? thickness;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.Line>(db);
+            var line = (AcDb.Line)obj;
+
+            if (start_point != null) line.StartPoint = start_point.ToPoint3d();
+            if (end_point != null) line.EndPoint = end_point.ToPoint3d();
+            if (thickness.HasValue) line.Thickness = thickness.Value;
+
+            return base.ToArx(obj, db);
+        }
+
+        // TODO FromArx
+    }
+
     [PyType(Name = "sacad.acdb.Vertex")]
-    public class Vertex : PyObject
+    public sealed class Vertex
     {
         public Vector2d point;
         public double? bulge;
@@ -68,7 +90,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.Polyline")]
-    public class Polyline : Curve
+    public sealed class Polyline : Curve
     {
         public bool? closed;
         public double? constant_width;
@@ -89,8 +111,10 @@ namespace SacadMgd
 
             foreach (var v in vertices)
             {
-                polyline.AddVertexAt(polyline.NumberOfVertices, v.__mbr__.point.ToPoint2d(),
-                    v.__mbr__.bulge ?? 0, v.__mbr__.start_width ?? constant_width ?? 0,
+                polyline.AddVertexAt(polyline.NumberOfVertices,
+                    v.__mbr__.point.ToPoint2d(),
+                    v.__mbr__.bulge ?? 0,
+                    v.__mbr__.start_width ?? constant_width ?? 0,
                     v.__mbr__.end_width ?? constant_width ?? 0);
             }
 
@@ -121,7 +145,8 @@ namespace SacadMgd
             var maxWidth = vertices.Max(v =>
                 Math.Max(v.__mbr__.start_width ?? 0, v.__mbr__.end_width ?? 0));
 
-            if (polyline.HasWidth && EqualityComparer<double>.Default.Equals(minWidth, maxWidth))
+            if (polyline.HasWidth &&
+                EqualityComparer<double>.Default.Equals(minWidth, maxWidth))
                 constant_width = minWidth;
 
             return base.FromArx(obj, db);

@@ -17,18 +17,20 @@ using AcDb = Autodesk.AutoCAD.DatabaseServices;
 namespace SacadMgd
 {
     [PyType(Name = "sacad.acdb.Database")]
-    public class Database : PyObject
+    public sealed class Database
     {
-        public Dictionary<string, PyWrapper<SymbolTableRecord>> blocktable;
-        public Dictionary<string, PyWrapper<SymbolTableRecord>> layertable;
+        public Dictionary<string, PyWrapper<BlockTableRecord>> blocktable;
+        public Dictionary<string, PyWrapper<LayerTableRecord>> layertable;
+        public Dictionary<string, PyWrapper<LinetypeTableRecord>> linetypetable;
     }
 
     [PyType(Name = "sacad.acdb.DBObject")]
-    public class DbObject : PyObject
+    public class DbObject
     {
         public long? id;
 
-        public virtual AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db) => obj;
+        public virtual AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+            => obj;
 
         public virtual DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
@@ -40,13 +42,27 @@ namespace SacadMgd
     [PyType(Name = "sacad.acdb.Entity")]
     public class Entity : DbObject
     {
-        public string Layer;
+        public string layer;
+        public string linetype;
+        public double? linetype_scale;
+
+        // TODO 
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
-            var ent = (AcDb.Entity)obj;
+            var entity = (AcDb.Entity)obj;
 
-            if (!string.IsNullOrWhiteSpace(Layer)) ent.Layer = Layer;
+            if (!string.IsNullOrWhiteSpace(layer) && db.GetLayer(layer) != null)
+                entity.Layer = layer;
+
+            if (!string.IsNullOrWhiteSpace(linetype) &&
+                db.GetLinetype(linetype) != null)
+            {
+                entity.Linetype = linetype;
+            }
+
+            if (linetype_scale.HasValue)
+                entity.LinetypeScale = linetype_scale.Value;
 
             return base.ToArx(obj, db);
         }
@@ -55,7 +71,9 @@ namespace SacadMgd
         {
             var entity = (AcDb.Entity)obj;
 
-            Layer = entity.Layer;
+            layer = entity.Layer;
+            linetype = entity.Linetype;
+            linetype_scale = entity.LinetypeScale;
 
             return base.FromArx(obj, db);
         }

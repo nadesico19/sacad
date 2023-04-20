@@ -10,6 +10,7 @@
 # See the Mulan PSL v2 for more details.
 
 import ctypes
+
 from typing import Type
 
 from sacad.jsonify import Jsonify

@@ -17,7 +17,7 @@ from typing import Iterable
 
 
 def main(cad: ac.Acad):
-    trans = cad.db_insert(zoom_mode=ac.ZoomMode.ADDED, zoom_scale=1.5)
+    trans = cad.db_insert(zoom_mode=ac.ZoomMode.ADDED, zoom_factor=1.5)
 
     trans.modelspace.insert_many(draw_golden_section_arcs())
 

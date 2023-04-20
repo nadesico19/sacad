@@ -18,19 +18,21 @@ namespace SacadMgd
         Unknown,
         Success,
         Failure,
+        Warning,
     }
 
     [PyType(Name = "sacad.result.Result")]
-    public class Result : PyObject
+    public class Result
     {
         public Status status;
         public string message;
     }
 
     [PyType(Name = "sacad.result.DBInsertResult")]
-    public class DbInsertResult : Result
+    public sealed class DbInsertResult : Result
     {
         public int num_inserted;
         public int num_updated;
+        public int num_failure;
     }
 }
