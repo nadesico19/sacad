@@ -82,16 +82,20 @@ class DBInsert(DBOperator):
         return self._query
 
     @cached_property
-    def modelspace(self) -> 'ListInsertProxy':
+    def model_space(self) -> 'ListInsertProxy':
         return ListInsertProxy(self, self._db.get_block(MODEL_SPACE).entities)
 
     @cached_property
-    def layertable(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self, self._db.layertable)
+    def layer_table(self) -> 'DictInsertProxy':
+        return DictInsertProxy(self, self._db.layer_table)
 
     @cached_property
-    def linetypetable(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self, self._db.linetypetable)
+    def linetype_table(self) -> 'DictInsertProxy':
+        return DictInsertProxy(self, self._db.linetype_table)
+
+    @cached_property
+    def text_style_table(self) -> 'DictInsertProxy':
+        return DictInsertProxy(self, self._db.text_style_table)
 
     def submit(self):
         request = self._query.serialize()

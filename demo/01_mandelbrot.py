@@ -18,7 +18,7 @@ def main(cad: ac.Acad):
     width, height, depth = 300, 200, 32
     trans = cad.db_insert(zoom_mode=ac.ZoomMode.ADDED, zoom_factor=1.5)
 
-    trans.layertable.insert_many(
+    trans.layer_table.insert_many(
         ac.LayerTableRecord(name=f'LAYER{i}', color=ac.Color.rgb(j, j, j))
         for i, j in map(lambda k: (k, k * 8), range(depth)))
 
@@ -26,7 +26,7 @@ def main(cad: ac.Acad):
         xn, yn = xc, yc = float(x) / width * 3 - 2, float(y) / height * 2 - 1
         for i in range(depth):
             if xn ** 2 + yn ** 2 > 4:
-                trans.modelspace.insert(ac.Polyline.new(
+                trans.model_space.insert(ac.Polyline.new(
                     ac.Vertex.new(x - 0.25, y, bulge=1),
                     ac.Vertex.new(x + 0.25, y, bulge=1),
                     closed=True, constant_width=0.5, layer=f'LAYER{i}'))

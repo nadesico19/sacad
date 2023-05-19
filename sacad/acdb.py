@@ -59,7 +59,8 @@ __all__ = [
     'LayerTableRecord',
     'LinetypeSegment',
     'LinetypeTableRecord',
-    # 'TextStyleTableRecord',
+    'FontDescriptor',
+    'TextStyleTableRecord',
 ]
 
 MODEL_SPACE = '*MODEL_SPACE'
@@ -874,21 +875,53 @@ class LinetypeTableRecord(SymbolTableRecord):
     pattern_length: Optional[float] = None
 
 
-# @dataclass
-# class TextStyleTableRecord(SymbolTableRecord):
-#     pass
+@dataclass
+class FontDescriptor(Jsonify):
+    bold: Optional[bool] = None
+    character_set: Optional[int] = None
+    italic: Optional[bool] = None
+    pitch_and_family: Optional[int] = None
+    type_face: Optional[str] = None
+
+
+@dataclass
+class TextStyleTableRecord(SymbolTableRecord):
+    font: Optional[FontDescriptor] = None
+    big_font_file_name: Optional[str] = None
+    file_name: Optional[str] = None
+    is_shape_file: Optional[bool] = None
+    is_vertical: Optional[bool] = None
+    obliquing_angle: Optional[float] = None
+    text_size: Optional[float] = None
+    x_scale: Optional[float] = None
+
+    # Returns the textStyle flagBits value. Only the second and third bits are
+    # used. If the second bit is set it indicates that the text is drawn
+    # backward (that is, mirrored in X). If the third bit is set it indicates
+    # that the text is drawn upside down (that is, mirrored in Y).
+    flag_bits: Optional[int] = None
+
+    # Returns the text height used for the last text created using this Text
+    # Style. This value is updated automatically by AutoCAD after the creation
+    # of any text object that references this TextStyleTableRecord. If the
+    # textSize value for this textStyle is 0, then the priorSize value is used
+    # by AutoCAD as the default text height for the next text created using this
+    # Text Style.
+    prior_size: Optional[float] = None
 
 
 @dataclass
 class Database(Jsonify):
-    blocktable: Dict[str, BlockTableRecord] = field(default_factory=dict)
-    layertable: Dict[str, LayerTableRecord] = field(default_factory=dict)
-    linetypetable: Dict[str, LinetypeTableRecord] = field(default_factory=dict)
+    block_table: Dict[str, BlockTableRecord] = field(default_factory=dict)
+    layer_table: Dict[str, LayerTableRecord] = field(default_factory=dict)
+    linetype_table: Dict[str, LinetypeTableRecord] = field(default_factory=dict)
+    text_style_table: Dict[str, TextStyleTableRecord] = field(
+        default_factory=dict)
 
     def get_block(self, name):
-        if name not in self.blocktable:
-            self.blocktable[name] = BlockTableRecord()
-        return self.blocktable[name]
+        if name not in self.block_table:
+            self.block_table[name] = BlockTableRecord()
+        return self.block_table[name]
 
 
 # Syntactic sugar of @decorator may somehow break the code completion of IDE
@@ -906,3 +939,5 @@ LinetypeTableRecord = csharp_polymorphic_type(
     "SacadMgd.LinetypeTableRecord, SacadMgd")(LinetypeTableRecord)
 LayerTableRecord = csharp_polymorphic_type(
     "SacadMgd.LayerTableRecord, SacadMgd")(LayerTableRecord)
+TextStyleTableRecord = csharp_polymorphic_type(
+    "SacadMgd.TextStyleTableRecord, SacadMgd")(TextStyleTableRecord)

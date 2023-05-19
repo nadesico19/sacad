@@ -57,8 +57,9 @@ namespace SacadMgd
                 using (var trans = db.TransactionManager.StartTransaction())
                 {
                     // TODO TextStyles
-                    InsertSymbol(db, clientDb?.linetypetable, result);
-                    InsertSymbol(db, clientDb?.layertable, result);
+                    InsertSymbol(db, clientDb?.text_style_table, result);
+                    InsertSymbol(db, clientDb?.linetype_table, result);
+                    InsertSymbol(db, clientDb?.layer_table, result);
                     // TODO DimStyles
 
                     if (prompt_insertion_point == true)
@@ -172,7 +173,7 @@ namespace SacadMgd
             AcDb.Database db, AcDb.Transaction trans, DbInsertResult result)
         {
             var extents = new AcDb.Extents3d();
-            if (clientDb?.blocktable?.ContainsKey(
+            if (clientDb?.block_table?.ContainsKey(
                     AcDb.BlockTableRecord.ModelSpace) != true)
                 return extents;
 
@@ -181,7 +182,7 @@ namespace SacadMgd
                 : (AcGe.Matrix3d?)null;
 
             var modelSpace = clientDb
-                .blocktable[AcDb.BlockTableRecord.ModelSpace].__mbr__;
+                .block_table[AcDb.BlockTableRecord.ModelSpace].__mbr__;
             foreach (var entity in modelSpace.entities)
             {
                 try

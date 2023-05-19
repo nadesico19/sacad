@@ -19,9 +19,14 @@ namespace SacadMgd
     [PyType(Name = "sacad.acdb.Database")]
     public sealed class Database
     {
-        public Dictionary<string, PyWrapper<BlockTableRecord>> blocktable;
-        public Dictionary<string, PyWrapper<LayerTableRecord>> layertable;
-        public Dictionary<string, PyWrapper<LinetypeTableRecord>> linetypetable;
+        public Dictionary<string, PyWrapper<BlockTableRecord>> block_table;
+        public Dictionary<string, PyWrapper<LayerTableRecord>> layer_table;
+
+        public Dictionary<string, PyWrapper<LinetypeTableRecord>>
+            linetype_table;
+
+        public Dictionary<string, PyWrapper<TextStyleTableRecord>>
+            text_style_table;
     }
 
     [PyType(Name = "sacad.acdb.DBObject")]

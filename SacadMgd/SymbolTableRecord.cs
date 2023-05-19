@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
+using AcGi = Autodesk.AutoCAD.GraphicsInterface;
 
 // ReSharper disable InconsistentNaming
 
@@ -30,6 +31,14 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
+        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var symbol = obj as AcDb.SymbolTableRecord;
+            if (symbol != null) name = symbol.Name;
+
+            return base.FromArx(obj, db);
+        }
+
         public virtual AcDb.SymbolTableRecord GetFromSymbolTable(
             AcDb.Database db)
         {
@@ -37,8 +46,7 @@ namespace SacadMgd
         }
 
         public virtual AcDb.ObjectId AddToSymbolTable(
-            AcDb.SymbolTableRecord symbol,
-            AcDb.Database db)
+            AcDb.SymbolTableRecord symbol, AcDb.Database db)
         {
             throw new NotImplementedException();
         }
@@ -48,6 +56,8 @@ namespace SacadMgd
     public sealed class BlockTableRecord : SymbolTableRecord
     {
         public List<PyWrapper<Entity>> entities;
+
+        // TODO override
     }
 
     [PyType(Name = "sacad.acdb.LayerTableRecord")]
@@ -247,5 +257,102 @@ namespace SacadMgd
         public override AcDb.ObjectId AddToSymbolTable(
             AcDb.SymbolTableRecord symbol, AcDb.Database db) =>
             db.AddLineype((AcDb.LinetypeTableRecord)symbol);
+    }
+
+    [PyType(Name = "sacad.acdb.FontDescriptor")]
+    public sealed class FontDescriptor
+    {
+        public bool? bold;
+        public int? character_set;
+        public bool? italic;
+        public int? pitch_and_family;
+        public string type_face;
+    }
+
+    [PyType(Name = "sacad.acdb.TextStyleTableRecord")]
+    public sealed class TextStyleTableRecord : SymbolTableRecord
+    {
+        public string big_font_file_name;
+        public string file_name;
+        public int? flag_bits;
+        public PyWrapper<FontDescriptor> font;
+        public bool? is_shape_file;
+        public bool? is_vertical;
+        public double? obliquing_angle;
+        public double? prior_size;
+        public double? text_size;
+        public double? x_scale;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? new AcDb.TextStyleTableRecord();
+            var textStyle = (AcDb.TextStyleTableRecord)obj;
+
+            if (font?.__mbr__ != null)
+            {
+                textStyle.Font = new AcGi.FontDescriptor(
+                    font.__mbr__.type_face,
+                    font.__mbr__.bold ?? false,
+                    font.__mbr__.italic ?? false,
+                    font.__mbr__.character_set ?? 0,
+                    font.__mbr__.pitch_and_family ?? 0);
+            }
+
+            if (!string.IsNullOrWhiteSpace(big_font_file_name))
+                textStyle.BigFontFileName = big_font_file_name;
+            if (!string.IsNullOrWhiteSpace(file_name))
+                textStyle.FileName = file_name;
+            if (flag_bits.HasValue)
+                textStyle.FlagBits = Convert.ToByte(flag_bits.Value);
+            if (is_shape_file.HasValue)
+                textStyle.IsShapeFile = is_shape_file.Value;
+            if (is_vertical.HasValue) textStyle.IsVertical = is_vertical.Value;
+            if (obliquing_angle.HasValue)
+                textStyle.ObliquingAngle = obliquing_angle.Value;
+            if (prior_size.HasValue) textStyle.PriorSize = prior_size.Value;
+            if (text_size.HasValue) textStyle.TextSize = text_size.Value;
+            if (x_scale.HasValue) textStyle.XScale = x_scale.Value;
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var textStyle = (AcDb.TextStyleTableRecord)obj;
+
+            var tfont = textStyle.Font;
+            if (!string.IsNullOrWhiteSpace(tfont.TypeFace))
+            {
+                font = PyWrapper<FontDescriptor>.Create(new FontDescriptor
+                {
+                    bold = tfont.Bold,
+                    italic = tfont.Italic,
+                    character_set = tfont.CharacterSet,
+                    pitch_and_family = tfont.PitchAndFamily,
+                    type_face = tfont.TypeFace,
+                });
+            }
+
+            big_font_file_name = textStyle.BigFontFileName;
+            file_name = textStyle.FileName;
+            flag_bits = Util.ToOptional(textStyle.FlagBits);
+            is_shape_file = Util.ToOptional(textStyle.IsShapeFile);
+            is_vertical = Util.ToOptional(textStyle.IsVertical);
+            obliquing_angle = Util.ToOptional(textStyle.ObliquingAngle);
+            prior_size = textStyle.PriorSize;
+            text_size = textStyle.TextSize;
+            x_scale = textStyle.XScale;
+
+            return base.FromArx(obj, db);
+        }
+
+        public override AcDb.SymbolTableRecord GetFromSymbolTable(
+            AcDb.Database db) => is_shape_file == true
+            ? db.GetShapeStyle(file_name)
+            : db.GetTextStyle(name);
+
+        public override AcDb.ObjectId AddToSymbolTable(
+            AcDb.SymbolTableRecord symbol, AcDb.Database db) =>
+            db.AddTextStyle((AcDb.TextStyleTableRecord)symbol);
     }
 }
