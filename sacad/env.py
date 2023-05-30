@@ -83,7 +83,7 @@ def acad_progid(name: str) -> str:
 
 
 def find_dll(name: str) -> Optional[str]:
-    dllfolder = os.path.join(config.dll_location, 'dll')
+    dllfolder = config.dll_location
 
     acad_names_desc = list(reversed(ACAD_NAME_PROGID_MAP.keys()))
     if name not in acad_names_desc:

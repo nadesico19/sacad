@@ -55,7 +55,7 @@ __all__ = [
     # 'RotatedDimension',
     'SymbolTableRecord',
     'BlockTableRecord',
-    # 'DimStyleTableRecord',
+    'DimStyleTableRecord',
     'LayerTableRecord',
     'LinetypeSegment',
     'LinetypeTableRecord',
@@ -569,43 +569,568 @@ class DimStyleCommon:
     #       | line
     dimjust: Optional[int] = None
 
+    # Specifies the arrow type for leaders.
+    #
+    # Type          : String
+    # Saved in      : Drawing
+    # Initial value : ""
+    #
+    # To return to the default, closed-filled arrowhead display, enter a single
+    # period (.). For a list of arrowhead entries, see DIMBLK.
+    #
+    # Note: Annotative blocks cannot be used as custom arrowheads for dimensions
+    # or leaders.
     dimldrblk: Optional[str] = None
+
+    # Sets a scale factor for linear dimension measurements.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 1.0000
+    # All linear dimension distances, including radii, diameters, and
+    # coordinates, are multiplied by DIMLFAC before being converted to dimension
+    # text. Positive values of DIMLFAC are applied to dimensions in both model
+    # space and paper space; negative values are applied to paper space only.
+    #
+    # DIMLFAC applies primarily to nonassociative dimensions (DIMASSOC set 0 or
+    # 1). For nonassociative dimensions in paper space, DIMLFAC must be set
+    # individually for each layout viewport to accommodate viewport scaling.
+    #
+    # DIMLFAC has no effect on angular dimensions, and is not applied to the
+    # values held in DIMRND, DIMTM, or DIMTP.
     dimlfac: Optional[float] = None
+
+    # Generates dimension limits as the default text.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Setting DIMLIM to On turns DIMTOL off.
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Dimension limits are not generated as default text
+    #   1   | Dimension limits are generated as default text
     dimlim: Optional[bool] = None
+
+    # Sets the linetype of the first extension line.
+    #
+    # Type          : String
+    # Saved in      : Drawing
+    # Initial value : ""
+    #
+    # The value is BYLAYER, BYBLOCK, or the name of a linetype.
     dimltex1: Optional[str] = None
+
+    # Sets the linetype of the second extension line.
+    #
+    # Type          : String
+    # Saved in      : Drawing
+    # Initial value : ""
+    #
+    # The value is BYLAYER, BYBLOCK, or the name of a linetype.
     dimltex2: Optional[str] = None
+
+    # Sets the linetype of the dimension line.
+    #
+    # Type          : String
+    # Saved in      : Drawing
+    # Initial value : ""
+    #
+    # The value is BYLAYER, BYBLOCK, or the name of a linetype.
     dimltype: Optional[str] = None
+
+    # Sets units for all dimension types except Angular.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 2
+    #
+    # Value | Description
+    # ------+------------
+    #   1   | Scientific
+    #   2   | Decimal
+    #   3   | Engineering
+    #   4   | Architectural (always displayed stacked)
+    #   5   | Fractional (always displayed stacked)
+    #   6   | Microsoft Windows Desktop (decimal format using Control Panel
+    #       | settings for decimal separator and number grouping symbols)
     dimlunit: Optional[int] = None
+
+    # Assigns lineweight to dimension lines.
+    #
+    # Type          : Enum
+    # Saved in      : Drawing
+    # Initial value : -2
+    #
+    # Value | Description
+    # ------+------------
+    #  -1   | Sets the lineweight to "BYLAYER."
+    #  -2   | Sets the lineweight to "BYBLOCK."
+    #  -3   | Sets the lineweight to "DEFAULT." "DEFAULT" is controlled by the
+    #       | LWDEFAULT system variable.
+    #
+    # Other valid values entered in hundredths of millimeters include 0, 5, 9,
+    # 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120,
+    # 140, 158, 200, and 211.
+    #
+    # All values must be entered in hundredths of millimeters. (Multiply a value
+    # by 2540 to convert values from inches to hundredths of millimeters.)
     dimlwd: Optional[LineWeight] = None
+
+    # Assigns lineweight to extension lines.
+    #
+    # Type          : Enum
+    # Saved in      : Drawing
+    # Initial value : -2
+    #
+    # Value | Description
+    # ------+------------
+    #  -1   | Sets the lineweight to "BYLAYER".
+    #  -2   | Sets the lineweight to "BYBLOCK".
+    #  -3   | Sets the lineweight to "DEFAULT". "DEFAULT" is controlled by the
+    #       | LWDEFAULT system variable.
+    #
+    # Other valid values entered in hundredths of millimeters include 0, 5, 9,
+    # 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120,
+    # 140, 158, 200, and 211.
+    #
+    # All values must be entered in hundredths of millimeters. (Multiply a value
+    # by 2540 to convert values from inches to hundredths of millimeters.)
     dimlwe: Optional[LineWeight] = None
+
+    # Specifies a text prefix or suffix (or both) to the dimension measurement.
+    #
+    # Type          : String
+    # Saved in      : Drawing
+    # Initial value : None
+    #
+    # For example, to establish a suffix for millimeters, set DIMPOST to mm; a
+    # distance of 19.2 units would be displayed as 19.2 mm.
+    #
+    # If tolerances are turned on, the suffix is applied to the tolerances as
+    # well as to the main dimension.
+    #
+    # Use <> to indicate placement of the text in relation to the dimension
+    # value. For example, enter <>mm to display a 5.0 millimeter radial
+    # dimension as "5.0mm". If you entered mm <>, the dimension would be
+    # displayed as "mm 5.0". Use the <> mechanism for angular dimensions.
     dimpost: Optional[str] = None
+
+    # Rounds all dimensioning distances to the specified value.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 0.0000
+    #
+    # For instance, if DIMRND is set to 0.25, all distances round to the nearest
+    # 0.25 unit. If you set DIMRND to 1.0, all distances round to the nearest
+    # integer. Note that the number of digits edited after the decimal point
+    # depends on the precision set by DIMDEC. DIMRND does not apply to angular
+    # dimensions.
     dimrnd: Optional[float] = None
+
+    # Controls the display of dimension line arrowhead blocks.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Use arrowhead blocks set by DIMBLK
+    #   1   | Use arrowhead blocks set by DIMBLK1 and DIMBLK2
     dimsah: Optional[bool] = None
+
+    # Sets the overall scale factor applied to dimensioning variables that
+    # specify sizes, distances, or offsets.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 1.0000
+    #
+    # Also affects the leader objects with the LEADER command.
+    #
+    # Use MLEADERSCALE to scale multileader objects created with the MLEADER
+    # command.
+    #
+    # Value | Description
+    # ------+------------
+    #  0.0  | A reasonable default value is computed based on the scaling
+    #       | between the current model space viewport and paper space. If you
+    #       | are in paper space or model space and not using the paper space
+    #       | feature, the scale factor is 1.0.
+    #  >0   | A scale factor is computed that leads text sizes, arrowhead sizes,
+    #       | and other scaled distances to plot at their face values.
+    #
+    # DIMSCALE does not affect measured lengths, coordinates, or angles.
+    #
+    # Use DIMSCALE to control the overall scale of dimensions. However, if the
+    # current dimension style is annotative, DIMSCALE is automatically set to
+    # zero and the dimension scale is controlled by the CANNOSCALE system
+    # variable. DIMSCALE cannot be set to a non-zero value when using annotative
+    # dimensions.
     dimscale: Optional[float] = None
+
+    # Controls suppression of the first dimension line and arrowhead.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # When turned on, suppresses the display of the dimension line and arrowhead
+    # between the first extension line and the text.
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | First dimension line is not suppressed
+    #   1   | First dimension line is suppressed
     dimsd1: Optional[bool] = None
+
+    # Controls suppression of the second dimension line and arrowhead.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # When turned on, suppresses the display of the dimension line and arrowhead between the second extension line and the text.
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Second dimension line is not suppressed
+    #   1   | Second dimension line is suppressed
     dimsd2: Optional[bool] = None
+
+    # Suppresses display of the first extension line.
+    #
+    # Type          :	Switch
+    # Saved in      :	Drawing
+    # Initial value :	0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Extension line is not suppressed
+    #   1   | Extension line is suppressed
     dimse1: Optional[bool] = None
+
+    # Suppresses display of the second extension line.
+    #
+    # Type          :	Switch
+    # Saved in      :	Drawing
+    # Initial value :	0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Extension line is not suppressed
+    #   1   | Extension line is suppressed
     dimse2: Optional[bool] = None
+
+    # Suppresses arrowheads if not enough space is available inside the
+    # extension lines.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Arrowheads are not suppressed
+    #   1   | Arrowheads are suppressed
+    #
+    # If not enough space is available inside the extension lines and DIMTIX is
+    # on, setting DIMSOXD to On suppresses the arrowheads. If DIMTIX is off,
+    # DIMSOXD has no effect.
     dimsoxd: Optional[bool] = None
+
+    # Controls the vertical position of text in relation to the dimension line.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 0 (imperial) or 1 (metric)
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Centers the dimension text between the extension lines.
+    #   1   | Places the dimension text above the dimension line except when the
+    #       | dimension line is not horizontal and text inside the extension
+    #       | lines is forced horizontal ( DIMTIH = 1). The distance from the
+    #       | dimension line to the baseline of the lowest line of text is the
+    #       | current DIMGAP value.
+    #   2   | Places the dimension text on the side of the dimension line
+    #       | farthest away from the defining points.
+    #   3   | Places the dimension text to conform to Japanese Industrial
+    #       | Standards (JIS).
+    #   4   | Places the dimension text below the dimension line.
     dimtad: Optional[int] = None
+
+    # Sets the number of decimal places to display in tolerance values for the
+    # primary units in a dimension.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 4 (imperial) or 2 (metric)
+    #
+    # This system variable has no effect unless DIMTOL is set to On. The default
+    # for DIMTOL is Off.
     dimtdec: Optional[int] = None
+
+    # Specifies a scale factor for the text height of fractions and tolerance
+    # values relative to the dimension text height, as set by DIMTXT.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 1.0000
+    #
+    # For example, if DIMTFAC is set to 1.0, the text height of fractions and
+    # tolerances is the same height as the dimension text. If DIMTFAC is set to
+    # 0.7500, the text height of fractions and tolerances is three-quarters the
+    # size of dimension text.
     dimtfac: Optional[float] = None
+
+    # Controls the background of dimension text.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | No background
+    #   1   | The background color of the drawing
+    #   2   | The background specified by DIMTFILLCLR
     dimtfill: Optional[int] = None
+
+    # Sets the color for the text background in dimensions.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Color numbers are displayed in the Select Color dialog box. For BYBLOCK,
+    # enter 0. For BYLAYER, enter 256.
     dimtfillclr: Optional[Color] = None
+
+    # Controls the position of dimension text inside the extension lines for all
+    # dimension types except Ordinate.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 1 (imperial) or 0 (metric)
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Aligns text with the dimension line
+    #   1   | Draws text horizontally
     dimtih: Optional[bool] = None
+
+    # Draws text between extension lines.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | For linear and angular dimensions, dimension text is placed inside
+    #       | the extension lines if there is sufficient room.
+    #   1   | Draws dimension text between the extension lines even if it would
+    #       | ordinarily be placed outside those lines. For radius and diameter
+    #       | dimensions, DIMTIX on always forces the dimension text outside the
+    #       | circle or arc.
     dimtix: Optional[bool] = None
+
+    # Sets the minimum (or lower) tolerance limit for dimension text when DIMTOL
+    # or DIMLIM is on.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 0.0000
+    #
+    # DIMTM accepts signed values. If DIMTOL is on and DIMTP and DIMTM are set
+    # to the same value, a tolerance value is drawn.
+    #
+    # If DIMTM and DIMTP values differ, the upper tolerance is drawn above the
+    # lower, and a plus sign is added to the DIMTP value if it is positive.
+    #
+    # For DIMTM, the program uses the negative of the value you enter (adding a
+    # minus sign if you specify a positive number and a plus sign if you specify
+    # a negative number).
     dimtm: Optional[float] = None
+
+    # Sets dimension text movement rules.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Moves the dimension line with dimension text
+    #   1   | Adds a leader when dimension text is moved
+    #   2   | Allows text to be moved freely without a leader
     dimtmove: Optional[int] = None
+
+    # Controls whether a dimension line is drawn between the extension lines
+    # even when the text is placed outside.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0 (imperial) or 1 (metric)
+    #
+    # For radius and diameter dimensions, a dimension line is drawn inside the
+    # circle or arc when the text, arrowheads, and leader are placed outside.
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Does not draw dimension lines between the measured points when
+    #       | arrowheads are placed outside the measured points
+    #   1   | Draws dimension lines between the measured points even when
+    #       | arrowheads are placed outside the measured points
     dimtofl: Optional[bool] = None
+
+    # Controls the position of dimension text outside the extension lines.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 1 (imperial) or 0 (metric)
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Aligns text with the dimension line
+    #   1   | Draws text horizontally
     dimtoh: Optional[bool] = None
+
+    # Appends tolerances to dimension text.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Setting DIMTOL to on (1) turns DIMLIM off (0).
     dimtol: Optional[bool] = None
+
+    # Sets the vertical justification for tolerance values relative to the
+    # nominal dimension text.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 1 (imperial) or 0 (metric)
+    #
+    # This system variable has no effect unless DIMTOL is set to On. The default
+    # for DIMTOL is Off.
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Bottom
+    #   1   | Middle
+    #   2   | Top
     dimtolj: Optional[int] = None
+
+    # Sets the maximum (or upper) tolerance limit for dimension text when DIMTOL
+    # or DIMLIM is on.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 0.0000
+    #
+    # DIMTP accepts signed values. If DIMTOL is on and DIMTP and DIMTM are set
+    # to the same value, a tolerance value is drawn.
+    #
+    # If DIMTM and DIMTP values differ, the upper tolerance is drawn above the
+    # lower and a plus sign is added to the DIMTP value if it is positive.
     dimtp: Optional[float] = None
+
+    # Specifies the size of oblique strokes drawn instead of arrowheads for
+    # linear, radius, and diameter dimensioning.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 0.0000
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Draws arrowheads.
+    #  >0   | Draws oblique strokes instead of arrowheads. The size of the oblique strokes is determined by this value multiplied by the DIMSCALE value.
     dimtsz: Optional[float] = None
+
+    # Controls the vertical position of dimension text above or below the
+    # dimension line.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 0.0000
+    #
+    # The DIMTVP value is used when DIMTAD is off. The magnitude of the vertical
+    # offset of text is the product of the text height and DIMTVP. Setting
+    # DIMTVP to 1.0 is equivalent to setting DIMTAD to on. The dimension line
+    # splits to accommodate the text only if the absolute value of DIMTVP is
+    # less than 0.7.
     dimtvp: Optional[float] = None
+
+    # Specifies the height of dimension text, unless the current text style has
+    # a fixed height.
+    #
+    # Type          : Real
+    # Saved in      : Drawing
+    # Initial value : 0.1800 (imperial) or 2.5000 (metric)
     dimtxt: Optional[float] = None
+
+    # Controls the suppression of zeros in tolerance values.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 0 (imperial) or 8 (metric)
+    #
+    # Values 0-3 affect feet-and-inch dimensions only.
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Suppresses zero feet and precisely zero inches
+    #   1   | Includes zero feet and precisely zero inches
+    #   2   | Includes zero feet and suppresses zero inches
+    #   3   | Includes zero inches and suppresses zero feet
+    #   4   | Suppresses leading zeros in decimal dimensions (for example,
+    #       | 0.5000 becomes .5000)
+    #   8   | Suppresses trailing zeros in decimal dimensions (for example,
+    #       | 12.5000 becomes 12.5)
+    #  12   | Suppresses both leading and trailing zeros (for example, 0.5000
+    #       | becomes .5)
     dimtzin: Optional[int] = None
+
+    # Controls options for user-positioned text.
+    #
+    # Type          : Switch
+    # Saved in      : Drawing
+    # Initial value : 0
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Cursor controls only the dimension line location
+    #   1   | Cursor controls both the text position and the dimension line
+    #       | location
     dimupt: Optional[bool] = None
+
+    # Controls the suppression of zeros in the primary unit value.
+    #
+    # Type          : Integer
+    # Saved in      : Drawing
+    # Initial value : 0 (imperial) or 8 (metric)
+    #
+    # Values 0-3 affect feet-and-inch dimensions only:
+    #
+    # Value | Description
+    # ------+------------
+    #   0   | Suppresses zero feet and precisely zero inches
+    #   1   | Includes zero feet and precisely zero inches
+    #   2   | Includes zero feet and suppresses zero inches
+    #   3   | Includes zero inches and suppresses zero feet
+    #   4   | Suppresses leading zeros in decimal dimensions (for example,
+    #       | 0.5000 becomes .5000)
+    #   8   | Suppresses trailing zeros in decimal dimensions (for example,
+    #       | 12.5000 becomes 12.5)
+    #  12   | Suppresses both leading and trailing zeros (for example, 0.5000
+    #       | becomes .5)
     dimzin: Optional[int] = None
 
 
@@ -825,9 +1350,14 @@ class BlockTableRecord(SymbolTableRecord):
     entities: List[Entity] = field(default_factory=list)
 
 
-# @dataclass
-# class DimStyleTableRecord(SymbolTableRecord, DimStyleCommon):
-#     pass
+@dataclass
+class DimStyleTableRecord(SymbolTableRecord, DimStyleCommon):
+    # Specifies the text style of the dimension.
+    #
+    # Type          : String
+    # Saved in      : Drawing
+    # Initial value : Standard
+    dimtxsty: Optional[str] = None
 
 
 @dataclass
@@ -913,6 +1443,8 @@ class TextStyleTableRecord(SymbolTableRecord):
 @dataclass
 class Database(Jsonify):
     block_table: Dict[str, BlockTableRecord] = field(default_factory=dict)
+    dim_style_table: Dict[str, DimStyleTableRecord] = field(
+        default_factory=dict)
     layer_table: Dict[str, LayerTableRecord] = field(default_factory=dict)
     linetype_table: Dict[str, LinetypeTableRecord] = field(default_factory=dict)
     text_style_table: Dict[str, TextStyleTableRecord] = field(
@@ -933,6 +1465,8 @@ Polyline = csharp_polymorphic_type("SacadMgd.Polyline, SacadMgd")(Polyline)
 
 BlockTableRecord = csharp_polymorphic_type(
     "SacadMgd.BlockTableRecord, SacadMgd")(BlockTableRecord)
+DimStyleTableRecord = csharp_polymorphic_type(
+    "SacadMgd.DimStyleTableRecord, SacadMgd")(DimStyleTableRecord)
 LinetypeSegment = csharp_polymorphic_type(
     "SacadMgd.LinetypeSegment, SacadMgd")(LinetypeSegment)
 LinetypeTableRecord = csharp_polymorphic_type(

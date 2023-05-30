@@ -44,7 +44,8 @@ and `Newtonsoft.Json.dll` in the output folder.
 
 ## Deployment
 
-The output files should be placed under `/sacad/dll/{version}` folder.
+The output files should be placed under `/sacad/dll/{version}` folder.[^1]
+
 The `version` placeholder should be replaced with number from 2010 to the latest
 version of AutoCAD.
 
@@ -69,3 +70,6 @@ hit the DLL under `/sacad/dll/2013`.
 Typically, due to the difference of dependencies between ObjectARX 2012 and
 2013, you should at least build two version of this library, to cover all
 AutoCAD versions from 2010 to the latest.
+
+[^1]: There is a `dll_location` variable in `config.py`. By changing this 
+variable at runtime, Sacad will load dll from other specified place.

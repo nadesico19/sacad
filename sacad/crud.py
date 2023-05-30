@@ -86,6 +86,10 @@ class DBInsert(DBOperator):
         return ListInsertProxy(self, self._db.get_block(MODEL_SPACE).entities)
 
     @cached_property
+    def dim_style_table(self) -> 'DictInsertProxy':
+        return DictInsertProxy(self, self._db.dim_style_table)
+
+    @cached_property
     def layer_table(self) -> 'DictInsertProxy':
         return DictInsertProxy(self, self._db.layer_table)
 

@@ -13,7 +13,7 @@ import os
 
 __all__ = []
 
-dll_location = os.path.dirname(os.path.abspath(__file__))
+dll_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dll')
 
 connection_timeout_seconds = 10
 request_timeout_seconds = 10

@@ -56,11 +56,10 @@ namespace SacadMgd
                 AcDb.Extents3d extents;
                 using (var trans = db.TransactionManager.StartTransaction())
                 {
-                    // TODO TextStyles
                     InsertSymbol(db, clientDb?.text_style_table, result);
                     InsertSymbol(db, clientDb?.linetype_table, result);
                     InsertSymbol(db, clientDb?.layer_table, result);
-                    // TODO DimStyles
+                    InsertSymbol(db, clientDb?.dim_style_table, result);
 
                     if (prompt_insertion_point == true)
                         PromptInsertionPoint(db);
@@ -107,8 +106,8 @@ namespace SacadMgd
         }
 
         private void InsertSymbol<T>(AcDb.Database db,
-            Dictionary<string, PyWrapper<T>> symbolTable, DbInsertResult result)
-            where T : SymbolTableRecord
+            Dictionary<string, PyWrapper<T>> symbolTable,
+            DbInsertResult result) where T : SymbolTableRecord
         {
             if (symbolTable == null) return;
 
@@ -121,7 +120,7 @@ namespace SacadMgd
                     var oldSymbol = symbol.__mbr__.GetFromSymbolTable(db);
                     if (oldSymbol != null)
                     {
-                        if (upsert != null) continue;
+                        if (upsert != true) continue;
 
                         oldSymbol.UpgradeOpen();
                         symbol.__mbr__.ToArx(oldSymbol, db);

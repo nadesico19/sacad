@@ -11,6 +11,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcGi = Autodesk.AutoCAD.GraphicsInterface;
 
@@ -58,6 +60,382 @@ namespace SacadMgd
         public List<PyWrapper<Entity>> entities;
 
         // TODO override
+    }
+
+    [PyType(Name = "sacad.acdb.DimStyleTableRecord")]
+    public sealed class DimStyleTableRecord : SymbolTableRecord
+    {
+        public int? dimadec;
+        public bool? dimalt;
+        public int? dimaltd;
+        public double? dimaltf;
+        public double? dimaltrnd;
+        public int? dimalttd;
+        public int? dimalttz;
+        public int? dimaltu;
+        public int? dimaltz;
+        public string dimapost;
+        public int? dimarcsym;
+        public double? dimasz;
+        public int? dimatfit;
+        public int? dimaunit;
+        public int? dimazin;
+        public string dimblk;
+        public string dimblk1;
+        public string dimblk2;
+        public double? dimcen;
+        public Color dimclrd;
+        public Color dimclre;
+        public Color dimclrt;
+        public int? dimdec;
+        public double? dimdle;
+        public double? dimdli;
+        public string dimdsep;
+        public double? dimexe;
+        public double? dimexo;
+        public int? dimfrac;
+        public double? dimfxlen;
+        public bool? dimfxlenOn;
+        public double? dimgap;
+        public double? dimjogang;
+        public int? dimjust;
+        public string dimldrblk;
+        public double? dimlfac;
+        public bool? dimlim;
+        public string dimltex1;
+        public string dimltex2;
+        public string dimltype;
+        public int? dimlunit;
+        public LineWeight? dimlwd;
+        public LineWeight? dimlwe;
+        public string dimpost;
+        public double? dimrnd;
+        public bool? dimsah;
+        public double? dimscale;
+        public bool? dimsd1;
+        public bool? dimsd2;
+        public bool? dimse1;
+        public bool? dimse2;
+        public bool? dimsoxd;
+        public int? dimtad;
+        public int? dimtdec;
+        public double? dimtfac;
+        public int? dimtfill;
+        public Color dimtfillclr;
+        public bool? dimtih;
+        public bool? dimtix;
+        public double? dimtm;
+        public int? dimtmove;
+        public bool? dimtofl;
+        public bool? dimtoh;
+        public bool? dimtol;
+        public int? dimtolj;
+        public double? dimtp;
+        public double? dimtsz;
+        public double? dimtvp;
+        public string dimtxsty;
+        public double? dimtxt;
+        public int? dimtzin;
+        public bool? dimupt;
+        public int? dimzin;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? new AcDb.DimStyleTableRecord();
+            var dimStyle = (AcDb.DimStyleTableRecord)obj;
+
+            if (dimadec.HasValue) dimStyle.Dimadec = dimadec.Value;
+            if (dimalt.HasValue) dimStyle.Dimalt = dimalt.Value;
+            if (dimaltd.HasValue) dimStyle.Dimaltd = dimaltd.Value;
+            if (dimaltf.HasValue) dimStyle.Dimaltf = dimaltf.Value;
+            if (dimaltrnd.HasValue) dimStyle.Dimaltrnd = dimaltrnd.Value;
+            if (dimalttd.HasValue) dimStyle.Dimalttd = dimalttd.Value;
+            if (dimalttz.HasValue) dimStyle.Dimalttz = dimalttz.Value;
+            if (dimaltu.HasValue) dimStyle.Dimaltu = dimaltu.Value;
+            if (dimaltz.HasValue) dimStyle.Dimaltz = dimaltz.Value;
+            if (!string.IsNullOrWhiteSpace(dimapost))
+                dimStyle.Dimapost = dimapost;
+            if (dimarcsym.HasValue) dimStyle.Dimarcsym = dimarcsym.Value;
+            if (dimasz.HasValue) dimStyle.Dimasz = dimasz.Value;
+            if (dimatfit.HasValue) dimStyle.Dimatfit = dimatfit.Value;
+            if (dimaunit.HasValue) dimStyle.Dimaunit = dimaunit.Value;
+            if (dimazin.HasValue) dimStyle.Dimazin = dimazin.Value;
+
+            if (!string.IsNullOrWhiteSpace(dimblk))
+            {
+                var blkId = GetDimblk(db, "DIMBLK", dimblk);
+                if (blkId.IsValid) dimStyle.Dimblk = blkId;
+            }
+
+            // TODO does not display the specified block...
+            if (!string.IsNullOrWhiteSpace(dimblk1))
+            {
+                var blkId = GetDimblk(db, "DIMBLK1", dimblk1);
+                if (blkId.IsValid) dimStyle.Dimblk1 = blkId;
+            }
+
+            // TODO does not display the specified block...
+            if (!string.IsNullOrWhiteSpace(dimblk2))
+            {
+                var blkId = GetDimblk(db, "DIMBLK2", dimblk2);
+                if (blkId.IsValid) dimStyle.Dimblk2 = blkId;
+            }
+
+            if (dimcen.HasValue) dimStyle.Dimcen = dimcen.Value;
+            if (dimclrd != null) dimStyle.Dimclrd = dimclrd.ToArx();
+            if (dimclre != null) dimStyle.Dimclre = dimclre.ToArx();
+            if (dimclrt != null) dimStyle.Dimclrt = dimclrt.ToArx();
+            if (dimdec.HasValue) dimStyle.Dimdec = dimdec.Value;
+            if (dimdle.HasValue) dimStyle.Dimdle = dimdle.Value;
+            if (dimdli.HasValue) dimStyle.Dimdli = dimdli.Value;
+            if (!string.IsNullOrWhiteSpace(dimdsep))
+                dimStyle.Dimdsep = dimdsep[0];
+            if (dimexe.HasValue) dimStyle.Dimexe = dimexe.Value;
+            if (dimexo.HasValue) dimStyle.Dimexo = dimexo.Value;
+            if (dimfrac.HasValue) dimStyle.Dimfrac = dimfrac.Value;
+            if (dimfxlen.HasValue) dimStyle.Dimfxlen = dimfxlen.Value;
+            if (dimfxlenOn.HasValue) dimStyle.DimfxlenOn = dimfxlenOn.Value;
+            if (dimgap.HasValue) dimStyle.Dimgap = dimgap.Value;
+            if (dimjogang.HasValue) dimStyle.Dimjogang = dimjogang.Value;
+            if (dimjust.HasValue) dimStyle.Dimjust = dimjust.Value;
+
+            if (!string.IsNullOrWhiteSpace(dimldrblk))
+            {
+                var blkId = GetDimblk(db, "DIMLDRBLK", dimldrblk);
+                if (blkId.IsValid) dimStyle.Dimldrblk = blkId;
+            }
+
+            if (dimlfac.HasValue) dimStyle.Dimlfac = dimlfac.Value;
+            if (dimlim.HasValue) dimStyle.Dimlim = dimlim.Value;
+
+            if (!string.IsNullOrWhiteSpace(dimltex1))
+            {
+                var linetype = db.GetLinetype(dimltex1);
+                if (linetype != null) dimStyle.Dimltex1 = linetype.Id;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dimltex2))
+            {
+                var linetype = db.GetLinetype(dimltex2);
+                if (linetype != null) dimStyle.Dimltex2 = linetype.Id;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dimltype))
+            {
+                var linetype = db.GetLinetype(dimltype);
+                if (linetype != null) dimStyle.Dimltype = linetype.Id;
+            }
+
+            if (dimlunit.HasValue) dimStyle.Dimlunit = dimlunit.Value;
+            if (dimlwd.HasValue)
+                dimStyle.Dimlwd = (AcDb.LineWeight)dimlwd.Value;
+            if (dimlwe.HasValue)
+                dimStyle.Dimlwe = (AcDb.LineWeight)dimlwe.Value;
+            if (!string.IsNullOrWhiteSpace(dimpost)) dimStyle.Dimpost = dimpost;
+            if (dimrnd.HasValue) dimStyle.Dimrnd = dimrnd.Value;
+            if (dimsah.HasValue) dimStyle.Dimsah = dimsah.Value;
+            if (dimscale.HasValue) dimStyle.Dimscale = dimscale.Value;
+            if (dimsd1.HasValue) dimStyle.Dimsd1 = dimsd1.Value;
+            if (dimsd2.HasValue) dimStyle.Dimsd2 = dimsd2.Value;
+            if (dimse1.HasValue) dimStyle.Dimse1 = dimse1.Value;
+            if (dimse2.HasValue) dimStyle.Dimse2 = dimse2.Value;
+            if (dimsoxd.HasValue) dimStyle.Dimsoxd = dimsoxd.Value;
+            if (dimtad.HasValue) dimStyle.Dimtad = dimtad.Value;
+            if (dimtdec.HasValue) dimStyle.Dimtdec = dimtdec.Value;
+            if (dimtfac.HasValue) dimStyle.Dimtfac = dimtfac.Value;
+            if (dimtfill.HasValue) dimStyle.Dimtfill = dimtfill.Value;
+            if (dimtfillclr != null) dimStyle.Dimtfillclr = dimtfillclr.ToArx();
+            if (dimtih.HasValue) dimStyle.Dimtih = dimtih.Value;
+            if (dimtix.HasValue) dimStyle.Dimtix = dimtix.Value;
+            if (dimtm.HasValue) dimStyle.Dimtm = dimtm.Value;
+            if (dimtmove.HasValue) dimStyle.Dimtmove = dimtmove.Value;
+            if (dimtofl.HasValue) dimStyle.Dimtofl = dimtofl.Value;
+            if (dimtoh.HasValue) dimStyle.Dimtoh = dimtoh.Value;
+            if (dimtol.HasValue) dimStyle.Dimtol = dimtol.Value;
+            if (dimtolj.HasValue) dimStyle.Dimtolj = dimtolj.Value;
+            if (dimtp.HasValue) dimStyle.Dimtp = dimtp.Value;
+            if (dimtsz.HasValue) dimStyle.Dimtsz = dimtsz.Value;
+            if (dimtvp.HasValue) dimStyle.Dimtvp = dimtvp.Value;
+
+            if (!string.IsNullOrWhiteSpace(dimtxsty))
+            {
+                var style = db.GetTextStyle(dimtxsty);
+                if (style != null) dimStyle.Dimtxsty = style.ObjectId;
+            }
+
+            if (dimtxt.HasValue) dimStyle.Dimtxt = dimtxt.Value;
+            if (dimtzin.HasValue) dimStyle.Dimtzin = dimtzin.Value;
+            if (dimupt.HasValue) dimStyle.Dimupt = dimupt.Value;
+            if (dimzin.HasValue) dimStyle.Dimzin = dimzin.Value;
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var dimStyle = (AcDb.DimStyleTableRecord)obj;
+            var trans = db.TransactionManager.TopTransaction;
+
+            dimadec = dimStyle.Dimadec;
+            dimalt = dimStyle.Dimalt;
+            dimaltd = dimStyle.Dimaltd;
+            dimaltf = dimStyle.Dimaltf;
+            dimaltrnd = dimStyle.Dimaltrnd;
+            dimalttd = dimStyle.Dimalttd;
+            dimalttz = dimStyle.Dimalttz;
+            dimaltu = dimStyle.Dimaltu;
+            dimaltz = dimStyle.Dimaltz;
+            dimapost = dimStyle.Dimapost;
+            dimarcsym = dimStyle.Dimarcsym;
+            dimasz = dimStyle.Dimasz;
+            dimatfit = dimStyle.Dimatfit;
+            dimaunit = dimStyle.Dimaunit;
+            dimazin = dimStyle.Dimazin;
+
+            if (dimStyle.Dimblk.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimblk, AcDb.OpenMode.ForRead);
+                dimblk = symbol.Name;
+            }
+
+            if (dimStyle.Dimblk1.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimblk1, AcDb.OpenMode.ForRead);
+                dimblk1 = symbol.Name;
+            }
+
+            if (dimStyle.Dimblk2.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimblk2, AcDb.OpenMode.ForRead);
+                dimblk2 = symbol.Name;
+            }
+
+            dimcen = dimStyle.Dimcen;
+            dimclrd = Color.FromArx(dimStyle.Dimclrd);
+            dimclre = Color.FromArx(dimStyle.Dimclre);
+            dimclrt = Color.FromArx(dimStyle.Dimclrt);
+            dimdec = dimStyle.Dimdec;
+            dimdle = dimStyle.Dimdle;
+            dimdli = dimStyle.Dimdli;
+            dimdsep = dimStyle.Dimdsep.ToString();
+            dimexe = dimStyle.Dimexe;
+            dimexo = dimStyle.Dimexo;
+            dimfrac = dimStyle.Dimfrac;
+            dimfxlen = dimStyle.Dimfxlen;
+            dimfxlenOn = dimStyle.DimfxlenOn;
+            dimgap = dimStyle.Dimgap;
+            dimjogang = dimStyle.Dimjogang;
+            dimjust = dimStyle.Dimjust;
+
+            if (dimStyle.Dimldrblk.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimldrblk, AcDb.OpenMode.ForRead);
+                dimldrblk = symbol.Name;
+            }
+
+            dimlfac = dimStyle.Dimlfac;
+            dimlim = dimStyle.Dimlim;
+
+            if (dimStyle.Dimltex1.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimltex1, AcDb.OpenMode.ForRead);
+                dimltex1 = symbol.Name;
+            }
+
+            if (dimStyle.Dimltex2.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimltex2, AcDb.OpenMode.ForRead);
+                dimltex2 = symbol.Name;
+            }
+
+            if (dimStyle.Dimltype.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimltype, AcDb.OpenMode.ForRead);
+                dimltype = symbol.Name;
+            }
+
+            dimlunit = dimStyle.Dimlunit;
+            dimlwd = (LineWeight)dimStyle.Dimlwd;
+            dimlwe = (LineWeight)dimStyle.Dimlwe;
+            dimpost = dimStyle.Dimpost;
+            dimrnd = dimStyle.Dimrnd;
+            dimsah = dimStyle.Dimsah;
+            dimscale = dimStyle.Dimscale;
+            dimsd1 = dimStyle.Dimsd1;
+            dimsd2 = dimStyle.Dimsd2;
+            dimse1 = dimStyle.Dimse1;
+            dimse2 = dimStyle.Dimse2;
+            dimsoxd = dimStyle.Dimsoxd;
+            dimtad = dimStyle.Dimtad;
+            dimtdec = dimStyle.Dimtdec;
+            dimtfac = dimStyle.Dimtfac;
+            dimtfill = dimStyle.Dimtfill;
+            dimtfillclr = Color.FromArx(dimStyle.Dimtfillclr);
+            dimtih = dimStyle.Dimtih;
+            dimtix = dimStyle.Dimtix;
+            dimtm = dimStyle.Dimtm;
+            dimtmove = dimStyle.Dimtmove;
+            dimtofl = dimStyle.Dimtofl;
+            dimtoh = dimStyle.Dimtoh;
+            dimtol = dimStyle.Dimtol;
+            dimtolj = dimStyle.Dimtolj;
+            dimtp = dimStyle.Dimtp;
+            dimtsz = dimStyle.Dimtsz;
+            dimtvp = dimStyle.Dimtvp;
+
+            if (dimStyle.Dimtxsty.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimtxsty, AcDb.OpenMode.ForRead);
+                dimtxsty = symbol.Name;
+            }
+
+            dimtxt = dimStyle.Dimtxt;
+            dimtzin = dimStyle.Dimtzin;
+            dimupt = dimStyle.Dimupt;
+            dimzin = dimStyle.Dimzin;
+
+            return base.FromArx(obj, db);
+        }
+
+        public override AcDb.SymbolTableRecord GetFromSymbolTable(
+            AcDb.Database db) => db.GetDimStyle(name);
+
+        public override AcDb.ObjectId AddToSymbolTable(
+            AcDb.SymbolTableRecord symbol, AcDb.Database db) =>
+            db.AddDimStyle((AcDb.DimStyleTableRecord)symbol);
+
+        [SuppressMessage("ReSharper", "AccessToStaticMemberViaDerivedType")]
+        private AcDb.ObjectId GetDimblk(AcDb.Database db, string dimBlkSysVar,
+            string arrowName)
+        {
+            var block = db.GetBlock(arrowName);
+            if (block != null) return block.ObjectId;
+
+            var oldArrowName = AcAp.Application.GetSystemVariable(dimBlkSysVar);
+            try
+            {
+                AcAp.Application.SetSystemVariable(dimBlkSysVar, arrowName);
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty((string)oldArrowName))
+                {
+                    AcAp.Application.SetSystemVariable(dimBlkSysVar,
+                        oldArrowName);
+                }
+            }
+
+            block = db.GetBlock(arrowName);
+            return block != null ? block.ObjectId : AcDb.ObjectId.Null;
+        }
     }
 
     [PyType(Name = "sacad.acdb.LayerTableRecord")]

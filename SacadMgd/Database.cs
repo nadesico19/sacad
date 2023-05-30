@@ -20,6 +20,10 @@ namespace SacadMgd
     public sealed class Database
     {
         public Dictionary<string, PyWrapper<BlockTableRecord>> block_table;
+
+        public Dictionary<string, PyWrapper<DimStyleTableRecord>>
+            dim_style_table;
+
         public Dictionary<string, PyWrapper<LayerTableRecord>> layer_table;
 
         public Dictionary<string, PyWrapper<LinetypeTableRecord>>
