@@ -21,7 +21,7 @@ using AcGi = Autodesk.AutoCAD.GraphicsInterface;
 namespace SacadMgd
 {
     [PyType(Name = "sacad.acdb.SymbolTableRecord")]
-    public class SymbolTableRecord : DbObject
+    public class SymbolTableRecord : DBObject
     {
         public string name;
 
@@ -33,7 +33,7 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
             var symbol = obj as AcDb.SymbolTableRecord;
             if (symbol != null) name = symbol.Name;
@@ -271,7 +271,7 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
             var dimStyle = (AcDb.DimStyleTableRecord)obj;
             var trans = db.TransactionManager.TopTransaction;
@@ -470,7 +470,7 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
             var layer = (AcDb.LayerTableRecord)obj;
             var trans = db.TransactionManager.TopTransaction;
@@ -571,7 +571,7 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
             var linetype = (AcDb.LinetypeTableRecord)obj;
             var trans = db.TransactionManager.TopTransaction;
@@ -694,7 +694,7 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
             var textStyle = (AcDb.TextStyleTableRecord)obj;
 

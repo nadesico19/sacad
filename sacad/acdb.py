@@ -26,10 +26,13 @@ __all__ = [
     'ObjectId',
     'Database',
     'LineWeight',
+    'TextHorizontalMode',
+    'TextVerticalMode',
+    'AttachmentPoint',
     'DBObject',
     'Entity',
     # 'BlockReference',
-    # 'DBText',
+    'DBText',
     # 'Hatch',
     'Curve',
     'Arc',
@@ -97,6 +100,49 @@ class LineWeight(IntEnum):
     LINE_WEIGHT_158 = 0x9e
     LINE_WEIGHT_200 = 200
     LINE_WEIGHT_211 = 0xd3
+
+
+class TextHorizontalMode(IntEnum):
+    TEXT_LEFT = 0
+    TEXT_CENTER = 1
+    TEXT_RIGHT = 2
+    TEXT_ALIGN = 3
+    TEXT_MID = 4
+    TEXT_FIT = 5
+
+
+class TextVerticalMode(IntEnum):
+    TEXT_BASE = 0
+    TEXT_BOTTOM = 1
+    TEXT_VERTICAL_MID = 2
+    TEXT_TOP = 3
+
+
+class AttachmentPoint(IntEnum):
+    BASE_ALIGN = 13,
+    BASE_CENTER = 11,
+    BASE_FIT = 0x11,
+    BASE_LEFT = 10,
+    BASE_MID = 0x15,
+    BASE_RIGHT = 12,
+    BOTTOM_ALIGN = 14,
+    BOTTOM_CENTER = 8,
+    BOTTOM_FIT = 0x12,
+    BOTTOM_LEFT = 7,
+    BOTTOM_MID = 0x16,
+    BOTTOM_RIGHT = 9,
+    MIDDLE_ALIGN = 15,
+    MIDDLE_CENTER = 5,
+    MIDDLE_FIT = 0x13,
+    MIDDLE_LEFT = 4,
+    MIDDLE_MID = 0x17,
+    MIDDLE_RIGHT = 6,
+    TOP_ALIGN = 0x10,
+    TOP_CENTER = 2,
+    TOP_FIT = 20,
+    TOP_LEFT = 1,
+    TOP_MID = 0x18,
+    TOP_RIGHT = 3
 
 
 @dataclass
@@ -1162,9 +1208,35 @@ class Entity(DBObject):
 #     pass
 
 
-# @dataclass
-# class DBText(Entity):
-#     pass
+@dataclass
+class DBText(Entity):
+    alignment_point: Optional[Vector3d] = None
+    height: Optional[float] = None
+    horizontal_mode: Optional[TextHorizontalMode] = None
+    is_mirrored_in_x: Optional[bool] = None
+    is_mirrored_in_y: Optional[bool] = None
+    justify: Optional[AttachmentPoint] = None
+    normal: Optional[Vector3d] = None
+    oblique: Optional[float] = None
+    position: Optional[Vector3d] = None
+    rotation: Optional[float] = None
+    text_string: Optional[str] = None
+    text_style_name: Optional[str] = None
+    thickness: Optional[float] = None
+    vertical_mode: Optional[TextVerticalMode] = None
+    width_factor: Optional[float] = None
+
+    def is_default_alignment(self) -> bool:
+        return self.horizontal_mode in (None, TextHorizontalMode.TEXT_LEFT) \
+            and self.vertical_mode in (None, TextVerticalMode.TEXT_BASE) \
+            and self.justify in (None, AttachmentPoint.BASE_LEFT)
+
+    def get_position(self) -> Vector3d:
+        if self.is_default_alignment() \
+                or self.horizontal_mode == TextHorizontalMode.TEXT_FIT:
+            return self.position
+
+        return self.alignment_point
 
 
 # @dataclass
@@ -1458,6 +1530,8 @@ class Database(Jsonify):
 
 # Syntactic sugar of @decorator may somehow break the code completion of IDE
 # (e.g. PyCharm) on @dataclass.
+
+DBText = csharp_polymorphic_type("SacadMgd.DBText, SacadMgd")(DBText)
 
 Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
 Line = csharp_polymorphic_type("SacadMgd.Line, SacadMgd")(Line)

@@ -40,6 +40,9 @@ namespace SacadMgd
 
         public static implicit operator Vector2d(AcGe.Point2d p) =>
             new Vector2d { __mbr__ = p.ToArray() };
+
+        public static readonly Vector2d Origin = new Vector2d
+            { __mbr__ = new[] { 0.0, 0 } };
     }
 
     public sealed class Vector3d
@@ -68,5 +71,8 @@ namespace SacadMgd
 
         public static implicit operator Vector3d(AcGe.Point3d p) =>
             new Vector3d { __mbr__ = p.ToArray() };
+
+        public static readonly Vector3d Origin = new Vector3d
+            { __mbr__ = new[] { 0.0, 0, 0 } };
     }
 }

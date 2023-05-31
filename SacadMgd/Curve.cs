@@ -22,12 +22,6 @@ namespace SacadMgd
     [PyType(Name = "sacad.acdb.Curve")]
     public class Curve : Entity
     {
-        protected static T New<T>(AcDb.Database db) where T : AcDb.Entity, new()
-        {
-            var entity = new T();
-            entity.SetDatabaseDefaults(db);
-            return entity;
-        }
     }
 
     [PyType(Name = "sacad.acdb.Arc")]
@@ -121,7 +115,7 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        public override DbObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
             var polyline = (AcDb.Polyline)obj;
 

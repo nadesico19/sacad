@@ -9,9 +9,7 @@
  * See the Mulan PubL v2 for more details.
  */
 
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 

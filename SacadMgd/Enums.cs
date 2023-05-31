@@ -54,4 +54,50 @@ namespace SacadMgd
         LineWeight200 = 200,
         LineWeight211 = 0xd3
     }
+
+    public enum TextHorizontalMode
+    {
+        TextLeft,
+        TextCenter,
+        TextRight,
+        TextAlign,
+        TextMid,
+        TextFit
+    }
+
+    public enum TextVerticalMode
+    {
+        TextBase,
+        TextBottom,
+        TextVerticalMid,
+        TextTop
+    }
+
+    public enum AttachmentPoint
+    {
+        BaseAlign = 13,
+        BaseCenter = 11,
+        BaseFit = 0x11,
+        BaseLeft = 10,
+        BaseMid = 0x15,
+        BaseRight = 12,
+        BottomAlign = 14,
+        BottomCenter = 8,
+        BottomFit = 0x12,
+        BottomLeft = 7,
+        BottomMid = 0x16,
+        BottomRight = 9,
+        MiddleAlign = 15,
+        MiddleCenter = 5,
+        MiddleFit = 0x13,
+        MiddleLeft = 4,
+        MiddleMid = 0x17,
+        MiddleRight = 6,
+        TopAlign = 0x10,
+        TopCenter = 2,
+        TopFit = 20,
+        TopLeft = 1,
+        TopMid = 0x18,
+        TopRight = 3
+    }
 }
