@@ -153,10 +153,6 @@ namespace SacadMgd
             var doc = AcAp.Application.DocumentManager.MdiActiveDocument;
             if (doc.Database != db) return;
 
-            // ReSharper disable once AccessToStaticMemberViaDerivedType
-            var hWnd = AcAp.Application.MainWindow.Handle;
-            Util.SetForegroundWindow(hWnd);
-
             var resPoint = doc.Editor.GetPoint(
                 "Please specify the insertion point:");
             if (resPoint.Status != PromptStatus.OK)

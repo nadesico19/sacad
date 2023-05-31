@@ -45,8 +45,5 @@ namespace SacadMgd
             => EqualityComparer<T>.Default.Equals(value, default(T))
                 ? (T?)null
                 : value;
-
-        [DllImport("user32.dll")]
-        public static extern int SetForegroundWindow(IntPtr hwnd);
     }
 }

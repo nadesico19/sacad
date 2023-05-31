@@ -12,8 +12,12 @@
 import os.path
 import time
 
+from contextlib import suppress
+
 import pythoncom
 import win32com.client as com
+import win32con
+import win32gui
 
 from functools import wraps
 
@@ -63,6 +67,18 @@ class ComAcad:
             self._acad.Visible = True
         except AttributeError as attr_err:
             raise RetryError(attr_err)
+
+    def activate(self):
+        with suppress(Exception):
+            hwnd = self._acad.HWND
+            is_visible = win32gui.IsWindowVisible(hwnd)
+            win32gui.SetWindowPos(
+                hwnd, win32con.HWND_TOP, 0, 0, 0, 0,
+                win32con.SWP_NOMOVE |
+                win32con.SWP_NOSIZE |
+                win32con.SWP_SHOWWINDOW |
+                (win32con.SWP_NOACTIVATE if is_visible else 0))
+            win32gui.SetForegroundWindow(hwnd)
 
     def netload(self, path: str):
         dirname = os.path.dirname(path)

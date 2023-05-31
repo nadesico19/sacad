@@ -85,6 +85,10 @@ class Session:
     def acad_name(self):
         return self._name
 
+    @property
+    def com_acad(self):
+        return self._com
+
     def _precheck(self):
         acad_names = env.available_acad()
         if not acad_names:

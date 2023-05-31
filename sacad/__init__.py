@@ -17,7 +17,6 @@ from .acdb import *
 from .acge import *
 from .constant import *
 from .crud import *
-from .env import available_acad
 from .error import *
 
 __all__ = []
