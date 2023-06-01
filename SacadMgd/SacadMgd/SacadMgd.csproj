@@ -69,8 +69,8 @@
         <Compile Include="..\DbQuery.cs">
           <Link>DbQuery.cs</Link>
         </Compile>
-        <Compile Include="..\Enums.cs">
-          <Link>Enums.cs</Link>
+        <Compile Include="..\Dimension.cs">
+          <Link>Dimension.cs</Link>
         </Compile>
         <Compile Include="..\Exception.cs">
           <Link>Exception.cs</Link>

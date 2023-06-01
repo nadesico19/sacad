@@ -11,10 +11,9 @@
 
 using System;
 using System.Collections.Generic;
-using Autodesk.AutoCAD.ApplicationServices.Core;
-using Autodesk.AutoCAD.EditorInput;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
+using AcEi = Autodesk.AutoCAD.EditorInput;
 using AcGe = Autodesk.AutoCAD.Geometry;
 
 // ReSharper disable InconsistentNaming
@@ -155,7 +154,7 @@ namespace SacadMgd
 
             var resPoint = doc.Editor.GetPoint(
                 "Please specify the insertion point:");
-            if (resPoint.Status != PromptStatus.OK)
+            if (resPoint.Status != AcEi.PromptStatus.OK)
             {
                 throw new OperationCanceledException(
                     "Failed to get the insertion point.");
@@ -212,7 +211,8 @@ namespace SacadMgd
 
         private void ZoomExtents(AcDb.Database db, AcDb.Extents3d ext)
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
+            // ReSharper disable once AccessToStaticMemberViaDerivedType
+            var doc = AcAp.Application.DocumentManager.MdiActiveDocument;
             if (doc.Database != db) return;
 
             if (ext.MinPoint.X >= ext.MaxPoint.X ||

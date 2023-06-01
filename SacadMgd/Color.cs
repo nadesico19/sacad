@@ -19,7 +19,7 @@ namespace SacadMgd
     [PyType(Name = "sacad.accm.Color")]
     public sealed class Color
     {
-        public ColorMethod? color_method;
+        public AcCm.ColorMethod? color_method;
 
         public int? red;
         public int? green;
@@ -29,9 +29,9 @@ namespace SacadMgd
 
         public AcCm.Color ToArx()
         {
-            var cm = color_method ?? ColorMethod.None;
+            var cm = color_method ?? AcCm.ColorMethod.None;
 
-            return cm == ColorMethod.ByColor
+            return cm == AcCm.ColorMethod.ByColor
                 ? AcCm.Color.FromRgb(
                     (byte)(red ?? 0), (byte)(green ?? 0), (byte)(blue ?? 0))
                 : AcCm.Color.FromColorIndex(
@@ -41,7 +41,7 @@ namespace SacadMgd
         public static Color FromArx(AcCm.Color color)
         {
             var result = new Color
-                { color_method = (ColorMethod)color.ColorMethod };
+                { color_method = (AcCm.ColorMethod)color.ColorMethod };
 
             if (color.ColorMethod == AcCm.ColorMethod.ByColor)
             {
@@ -57,9 +57,9 @@ namespace SacadMgd
             return result;
         }
 
-        private static ColorMethod Ensure(ColorMethod method) =>
-            Enum.IsDefined(typeof(ColorMethod), method)
+        private static AcCm.ColorMethod Ensure(AcCm.ColorMethod method) =>
+            Enum.IsDefined(typeof(AcCm.ColorMethod), method)
                 ? method
-                : ColorMethod.None;
+                : AcCm.ColorMethod.None;
     }
 }

@@ -56,7 +56,7 @@ namespace SacadMgd
         public string layer;
         public string linetype;
         public double? linetype_scale;
-        public LineWeight? line_weight;
+        public AcDb.LineWeight? line_weight;
         public bool? visible;
 
         // TODO 
@@ -77,19 +77,15 @@ namespace SacadMgd
             else if (color_index.HasValue)
                 entity.ColorIndex = color_index.Value;
 
-            if (!string.IsNullOrWhiteSpace(layer) && db.GetLayer(layer) != null)
+            if (layer != null && db.GetLayer(layer) != null)
                 entity.Layer = layer;
 
-            if (!string.IsNullOrWhiteSpace(linetype) &&
-                db.GetLinetype(linetype) != null)
-            {
+            if (linetype != null && db.GetLinetype(linetype) != null)
                 entity.Linetype = linetype;
-            }
 
             if (linetype_scale.HasValue)
                 entity.LinetypeScale = linetype_scale.Value;
-            if (line_weight.HasValue)
-                entity.LineWeight = (AcDb.LineWeight)line_weight.Value;
+            if (line_weight.HasValue) entity.LineWeight = line_weight.Value;
             if (visible.HasValue) entity.Visible = visible.Value;
 
             return base.ToArx(obj, db);
@@ -105,7 +101,7 @@ namespace SacadMgd
             layer = entity.Layer;
             linetype = entity.Linetype;
             linetype_scale = entity.LinetypeScale;
-            line_weight = (LineWeight)entity.LineWeight;
+            line_weight = entity.LineWeight;
             visible = entity.Visible;
 
             return base.FromArx(obj, db);
@@ -117,10 +113,10 @@ namespace SacadMgd
     {
         public Vector3d alignment_point;
         public double? height;
-        public TextHorizontalMode? horizontal_mode;
+        public AcDb.TextHorizontalMode? horizontal_mode;
         public bool? is_mirrored_in_x;
         public bool? is_mirrored_in_y;
-        public AttachmentPoint? justify;
+        public AcDb.AttachmentPoint? justify;
         public Vector3d normal;
         public double? oblique;
         public Vector3d position;
@@ -128,7 +124,7 @@ namespace SacadMgd
         public string text_string;
         public string text_style_name;
         public double? thickness;
-        public TextVerticalMode? vertical_mode;
+        public AcDb.TextVerticalMode? vertical_mode;
         public double? width_factor;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
@@ -138,25 +134,22 @@ namespace SacadMgd
 
             if (height.HasValue) dbText.Height = height.Value;
             if (horizontal_mode.HasValue)
-                dbText.HorizontalMode =
-                    (AcDb.TextHorizontalMode)horizontal_mode.Value;
+                dbText.HorizontalMode = horizontal_mode.Value;
             if (is_mirrored_in_x.HasValue)
                 dbText.IsMirroredInX = is_mirrored_in_x.Value;
             if (is_mirrored_in_y.HasValue)
                 dbText.IsMirroredInY = is_mirrored_in_y.Value;
-            if (justify.HasValue)
-                dbText.Justify = (AcDb.AttachmentPoint)justify.Value;
+            if (justify.HasValue) dbText.Justify = justify.Value;
             if (normal != null) dbText.Normal = normal.ToVector3d();
             if (oblique.HasValue) dbText.Oblique = oblique.Value;
             if (rotation.HasValue) dbText.Rotation = rotation.Value;
             dbText.TextString = text_string ?? string.Empty;
             if (thickness.HasValue) dbText.Thickness = thickness.Value;
             if (vertical_mode.HasValue)
-                dbText.VerticalMode =
-                    (AcDb.TextVerticalMode)vertical_mode.Value;
+                dbText.VerticalMode = vertical_mode.Value;
             if (width_factor.HasValue) dbText.WidthFactor = width_factor.Value;
 
-            if (!string.IsNullOrWhiteSpace(text_style_name))
+            if (text_style_name != null)
             {
                 var style = db.GetTextStyle(text_style_name);
                 if (style != null)
@@ -201,11 +194,10 @@ namespace SacadMgd
 
             alignment_point = dbText.AlignmentPoint;
             height = dbText.Height;
-            horizontal_mode =
-                Util.ToOptional((TextHorizontalMode)dbText.HorizontalMode);
+            horizontal_mode = Util.ToOptional(dbText.HorizontalMode);
             is_mirrored_in_x = Util.ToOptional(dbText.IsMirroredInX);
             is_mirrored_in_y = Util.ToOptional(dbText.IsMirroredInY);
-            justify = (AttachmentPoint)dbText.Justify;
+            justify = dbText.Justify;
             normal = dbText.Normal;
             oblique = Util.ToOptional(dbText.Oblique);
             position = dbText.Position;
@@ -213,8 +205,7 @@ namespace SacadMgd
             text_string = dbText.TextString;
             text_style_name = dbText.TextStyleName;
             thickness = Util.ToOptional(dbText.Thickness);
-            vertical_mode =
-                Util.ToOptional((TextVerticalMode)dbText.VerticalMode);
+            vertical_mode = Util.ToOptional(dbText.VerticalMode);
             width_factor = dbText.WidthFactor;
 
             return base.FromArx(obj, db);

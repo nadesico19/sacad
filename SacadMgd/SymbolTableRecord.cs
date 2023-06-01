@@ -84,9 +84,9 @@ namespace SacadMgd
         public string dimblk1;
         public string dimblk2;
         public double? dimcen;
-        public Color dimclrd;
-        public Color dimclre;
-        public Color dimclrt;
+        public PyWrapper<Color> dimclrd;
+        public PyWrapper<Color> dimclre;
+        public PyWrapper<Color> dimclrt;
         public int? dimdec;
         public double? dimdle;
         public double? dimdli;
@@ -106,8 +106,8 @@ namespace SacadMgd
         public string dimltex2;
         public string dimltype;
         public int? dimlunit;
-        public LineWeight? dimlwd;
-        public LineWeight? dimlwe;
+        public AcDb.LineWeight? dimlwd;
+        public AcDb.LineWeight? dimlwe;
         public string dimpost;
         public double? dimrnd;
         public bool? dimsah;
@@ -121,7 +121,7 @@ namespace SacadMgd
         public int? dimtdec;
         public double? dimtfac;
         public int? dimtfill;
-        public Color dimtfillclr;
+        public PyWrapper<Color> dimtfillclr;
         public bool? dimtih;
         public bool? dimtix;
         public double? dimtm;
@@ -153,43 +153,41 @@ namespace SacadMgd
             if (dimalttz.HasValue) dimStyle.Dimalttz = dimalttz.Value;
             if (dimaltu.HasValue) dimStyle.Dimaltu = dimaltu.Value;
             if (dimaltz.HasValue) dimStyle.Dimaltz = dimaltz.Value;
-            if (!string.IsNullOrWhiteSpace(dimapost))
-                dimStyle.Dimapost = dimapost;
+            if (dimapost != null) dimStyle.Dimapost = dimapost;
             if (dimarcsym.HasValue) dimStyle.Dimarcsym = dimarcsym.Value;
             if (dimasz.HasValue) dimStyle.Dimasz = dimasz.Value;
             if (dimatfit.HasValue) dimStyle.Dimatfit = dimatfit.Value;
             if (dimaunit.HasValue) dimStyle.Dimaunit = dimaunit.Value;
             if (dimazin.HasValue) dimStyle.Dimazin = dimazin.Value;
 
-            if (!string.IsNullOrWhiteSpace(dimblk))
+            if (dimblk != null)
             {
                 var blkId = GetDimblk(db, "DIMBLK", dimblk);
                 if (blkId.IsValid) dimStyle.Dimblk = blkId;
             }
 
             // TODO does not display the specified block...
-            if (!string.IsNullOrWhiteSpace(dimblk1))
+            if (dimblk1 != null)
             {
                 var blkId = GetDimblk(db, "DIMBLK1", dimblk1);
                 if (blkId.IsValid) dimStyle.Dimblk1 = blkId;
             }
 
             // TODO does not display the specified block...
-            if (!string.IsNullOrWhiteSpace(dimblk2))
+            if (dimblk2 != null)
             {
                 var blkId = GetDimblk(db, "DIMBLK2", dimblk2);
                 if (blkId.IsValid) dimStyle.Dimblk2 = blkId;
             }
 
             if (dimcen.HasValue) dimStyle.Dimcen = dimcen.Value;
-            if (dimclrd != null) dimStyle.Dimclrd = dimclrd.ToArx();
-            if (dimclre != null) dimStyle.Dimclre = dimclre.ToArx();
-            if (dimclrt != null) dimStyle.Dimclrt = dimclrt.ToArx();
+            if (dimclrd != null) dimStyle.Dimclrd = dimclrd.__mbr__.ToArx();
+            if (dimclre != null) dimStyle.Dimclre = dimclre.__mbr__.ToArx();
+            if (dimclrt != null) dimStyle.Dimclrt = dimclrt.__mbr__.ToArx();
             if (dimdec.HasValue) dimStyle.Dimdec = dimdec.Value;
             if (dimdle.HasValue) dimStyle.Dimdle = dimdle.Value;
             if (dimdli.HasValue) dimStyle.Dimdli = dimdli.Value;
-            if (!string.IsNullOrWhiteSpace(dimdsep))
-                dimStyle.Dimdsep = dimdsep[0];
+            if (!string.IsNullOrEmpty(dimdsep)) dimStyle.Dimdsep = dimdsep[0];
             if (dimexe.HasValue) dimStyle.Dimexe = dimexe.Value;
             if (dimexo.HasValue) dimStyle.Dimexo = dimexo.Value;
             if (dimfrac.HasValue) dimStyle.Dimfrac = dimfrac.Value;
@@ -199,7 +197,7 @@ namespace SacadMgd
             if (dimjogang.HasValue) dimStyle.Dimjogang = dimjogang.Value;
             if (dimjust.HasValue) dimStyle.Dimjust = dimjust.Value;
 
-            if (!string.IsNullOrWhiteSpace(dimldrblk))
+            if (dimldrblk != null)
             {
                 var blkId = GetDimblk(db, "DIMLDRBLK", dimldrblk);
                 if (blkId.IsValid) dimStyle.Dimldrblk = blkId;
@@ -208,30 +206,28 @@ namespace SacadMgd
             if (dimlfac.HasValue) dimStyle.Dimlfac = dimlfac.Value;
             if (dimlim.HasValue) dimStyle.Dimlim = dimlim.Value;
 
-            if (!string.IsNullOrWhiteSpace(dimltex1))
+            if (dimltex1 != null)
             {
                 var linetype = db.GetLinetype(dimltex1);
                 if (linetype != null) dimStyle.Dimltex1 = linetype.Id;
             }
 
-            if (!string.IsNullOrWhiteSpace(dimltex2))
+            if (dimltex2 != null)
             {
                 var linetype = db.GetLinetype(dimltex2);
                 if (linetype != null) dimStyle.Dimltex2 = linetype.Id;
             }
 
-            if (!string.IsNullOrWhiteSpace(dimltype))
+            if (dimltype != null)
             {
                 var linetype = db.GetLinetype(dimltype);
                 if (linetype != null) dimStyle.Dimltype = linetype.Id;
             }
 
             if (dimlunit.HasValue) dimStyle.Dimlunit = dimlunit.Value;
-            if (dimlwd.HasValue)
-                dimStyle.Dimlwd = (AcDb.LineWeight)dimlwd.Value;
-            if (dimlwe.HasValue)
-                dimStyle.Dimlwe = (AcDb.LineWeight)dimlwe.Value;
-            if (!string.IsNullOrWhiteSpace(dimpost)) dimStyle.Dimpost = dimpost;
+            if (dimlwd.HasValue) dimStyle.Dimlwd = dimlwd.Value;
+            if (dimlwe.HasValue) dimStyle.Dimlwe = dimlwe.Value;
+            if (dimpost != null) dimStyle.Dimpost = dimpost;
             if (dimrnd.HasValue) dimStyle.Dimrnd = dimrnd.Value;
             if (dimsah.HasValue) dimStyle.Dimsah = dimsah.Value;
             if (dimscale.HasValue) dimStyle.Dimscale = dimscale.Value;
@@ -244,7 +240,8 @@ namespace SacadMgd
             if (dimtdec.HasValue) dimStyle.Dimtdec = dimtdec.Value;
             if (dimtfac.HasValue) dimStyle.Dimtfac = dimtfac.Value;
             if (dimtfill.HasValue) dimStyle.Dimtfill = dimtfill.Value;
-            if (dimtfillclr != null) dimStyle.Dimtfillclr = dimtfillclr.ToArx();
+            if (dimtfillclr != null)
+                dimStyle.Dimtfillclr = dimtfillclr.__mbr__.ToArx();
             if (dimtih.HasValue) dimStyle.Dimtih = dimtih.Value;
             if (dimtix.HasValue) dimStyle.Dimtix = dimtix.Value;
             if (dimtm.HasValue) dimStyle.Dimtm = dimtm.Value;
@@ -257,7 +254,7 @@ namespace SacadMgd
             if (dimtsz.HasValue) dimStyle.Dimtsz = dimtsz.Value;
             if (dimtvp.HasValue) dimStyle.Dimtvp = dimtvp.Value;
 
-            if (!string.IsNullOrWhiteSpace(dimtxsty))
+            if (dimtxsty != null)
             {
                 var style = db.GetTextStyle(dimtxsty);
                 if (style != null) dimStyle.Dimtxsty = style.ObjectId;
@@ -314,9 +311,9 @@ namespace SacadMgd
             }
 
             dimcen = dimStyle.Dimcen;
-            dimclrd = Color.FromArx(dimStyle.Dimclrd);
-            dimclre = Color.FromArx(dimStyle.Dimclre);
-            dimclrt = Color.FromArx(dimStyle.Dimclrt);
+            dimclrd = PyWrapper<Color>.Create(Color.FromArx(dimStyle.Dimclrd));
+            dimclre = PyWrapper<Color>.Create(Color.FromArx(dimStyle.Dimclre));
+            dimclrt = PyWrapper<Color>.Create(Color.FromArx(dimStyle.Dimclrt));
             dimdec = dimStyle.Dimdec;
             dimdle = dimStyle.Dimdle;
             dimdli = dimStyle.Dimdli;
@@ -362,8 +359,8 @@ namespace SacadMgd
             }
 
             dimlunit = dimStyle.Dimlunit;
-            dimlwd = (LineWeight)dimStyle.Dimlwd;
-            dimlwe = (LineWeight)dimStyle.Dimlwe;
+            dimlwd = dimStyle.Dimlwd;
+            dimlwe = dimStyle.Dimlwe;
             dimpost = dimStyle.Dimpost;
             dimrnd = dimStyle.Dimrnd;
             dimsah = dimStyle.Dimsah;
@@ -377,7 +374,8 @@ namespace SacadMgd
             dimtdec = dimStyle.Dimtdec;
             dimtfac = dimStyle.Dimtfac;
             dimtfill = dimStyle.Dimtfill;
-            dimtfillclr = Color.FromArx(dimStyle.Dimtfillclr);
+            dimtfillclr = PyWrapper<Color>.Create(
+                Color.FromArx(dimStyle.Dimtfillclr));
             dimtih = dimStyle.Dimtih;
             dimtix = dimStyle.Dimtix;
             dimtm = dimStyle.Dimtm;
@@ -426,7 +424,7 @@ namespace SacadMgd
             }
             finally
             {
-                if (!string.IsNullOrEmpty((string)oldArrowName))
+                if (!string.IsNullOrEmpty(oldArrowName as string))
                 {
                     AcAp.Application.SetSystemVariable(dimBlkSysVar,
                         oldArrowName);
@@ -446,7 +444,7 @@ namespace SacadMgd
         public bool? is_locked;
         public bool? is_off;
         public bool? is_plottable;
-        public LineWeight? line_weight;
+        public AcDb.LineWeight? line_weight;
         public string linetype;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
@@ -459,9 +457,8 @@ namespace SacadMgd
             if (is_locked.HasValue) layer.IsLocked = is_locked.Value;
             if (is_off.HasValue) layer.IsOff = is_off.Value;
             if (is_plottable.HasValue) layer.IsPlottable = is_plottable.Value;
-            if (line_weight.HasValue)
-                layer.LineWeight = (AcDb.LineWeight)line_weight.Value;
-            if (!string.IsNullOrWhiteSpace(linetype))
+            if (line_weight.HasValue) layer.LineWeight = line_weight.Value;
+            if (linetype != null)
             {
                 var ltype = db.GetLinetype(linetype);
                 if (ltype != null) layer.LinetypeObjectId = ltype.ObjectId;
@@ -476,7 +473,7 @@ namespace SacadMgd
             var trans = db.TransactionManager.TopTransaction;
 
             color = PyWrapper<Color>.Create(Color.FromArx(layer.Color));
-            line_weight = (LineWeight)layer.LineWeight;
+            line_weight = layer.LineWeight;
             is_frozen = Util.ToOptional(layer.IsFrozen);
             is_locked = Util.ToOptional(layer.IsLocked);
             is_off = Util.ToOptional(layer.IsOff);
@@ -550,7 +547,7 @@ namespace SacadMgd
                             seg.shape_rotation.Value);
                     if (seg.shape_scale.HasValue)
                         linetype.SetShapeScaleAt(i, seg.shape_scale.Value);
-                    if (string.IsNullOrEmpty(seg.text))
+                    if (seg.text != null)
                         linetype.SetTextAt(i, seg.text);
                     if (seg.shape_style != null)
                     {
@@ -676,9 +673,9 @@ namespace SacadMgd
                     font.__mbr__.pitch_and_family ?? 0);
             }
 
-            if (!string.IsNullOrWhiteSpace(big_font_file_name))
+            if (!string.IsNullOrEmpty(big_font_file_name))
                 textStyle.BigFontFileName = big_font_file_name;
-            if (!string.IsNullOrWhiteSpace(file_name))
+            if (!string.IsNullOrEmpty(file_name))
                 textStyle.FileName = file_name;
             if (flag_bits.HasValue)
                 textStyle.FlagBits = Convert.ToByte(flag_bits.Value);
@@ -699,7 +696,7 @@ namespace SacadMgd
             var textStyle = (AcDb.TextStyleTableRecord)obj;
 
             var tfont = textStyle.Font;
-            if (!string.IsNullOrWhiteSpace(tfont.TypeFace))
+            if (!string.IsNullOrEmpty(tfont.TypeFace))
             {
                 font = PyWrapper<FontDescriptor>.Create(new FontDescriptor
                 {

@@ -28,11 +28,12 @@ namespace SacadMgd
     public sealed class Arc : Curve
     {
         public Vector3d center;
+        public double? end_angle;
         public Vector3d normal;
         public double? radius;
         public double? start_angle;
-        public double? end_angle;
         public double? thickness;
+        public double? total_angle;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
@@ -40,23 +41,37 @@ namespace SacadMgd
             var arc = (AcDb.Arc)obj;
 
             if (center != null) arc.Center = center.ToPoint3d();
+            if (end_angle.HasValue) arc.EndAngle = end_angle.Value;
             if (normal != null) arc.Normal = normal.ToVector3d();
             if (radius.HasValue) arc.Radius = radius.Value;
             if (start_angle.HasValue) arc.StartAngle = start_angle.Value;
-            if (end_angle.HasValue) arc.EndAngle = end_angle.Value;
             if (thickness.HasValue) arc.Thickness = thickness.Value;
 
             return base.ToArx(obj, db);
         }
 
-        // TODO FromArx
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var arc = (AcDb.Arc)obj;
+
+            center = arc.Center;
+            end_angle = arc.EndAngle;
+            normal = arc.Normal;
+            radius = arc.Radius;
+            start_angle = arc.StartAngle;
+            thickness = arc.Thickness;
+            total_angle = arc.TotalAngle;
+
+            return base.FromArx(obj, db);
+        }
     }
 
     [PyType(Name = "sacad.acdb.Line")]
     public sealed class Line : Curve
     {
-        public Vector3d start_point;
         public Vector3d end_point;
+        public Vector3d normal;
+        public Vector3d start_point;
         public double? thickness;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
@@ -64,14 +79,25 @@ namespace SacadMgd
             obj = obj ?? New<AcDb.Line>(db);
             var line = (AcDb.Line)obj;
 
-            if (start_point != null) line.StartPoint = start_point.ToPoint3d();
             if (end_point != null) line.EndPoint = end_point.ToPoint3d();
+            if (normal != null) line.Normal = normal.ToVector3d();
+            if (start_point != null) line.StartPoint = start_point.ToPoint3d();
             if (thickness.HasValue) line.Thickness = thickness.Value;
 
             return base.ToArx(obj, db);
         }
 
-        // TODO FromArx
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var line = (AcDb.Line)obj;
+
+            end_point = line.EndPoint;
+            normal = line.Normal;
+            start_point = line.StartPoint;
+            thickness = line.Thickness;
+
+            return base.FromArx(obj, db);
+        }
     }
 
     [PyType(Name = "sacad.acdb.Vertex")]

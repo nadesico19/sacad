@@ -11,6 +11,8 @@
 
 """acdb: AcDb stands for `Autodesk.AutoCAD.DatabaseServices`."""
 
+import math
+
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Dict, List, Optional
@@ -29,6 +31,8 @@ __all__ = [
     'TextHorizontalMode',
     'TextVerticalMode',
     'AttachmentPoint',
+    'DimensionCenterMarkType',
+    'LineSpacingStyle',
     'DBObject',
     'Entity',
     # 'BlockReference',
@@ -36,7 +40,7 @@ __all__ = [
     # 'Hatch',
     'Curve',
     'Arc',
-    # 'Circle',
+    'Circle',
     # 'Ellipse',
     # 'Leader',
     'Line',
@@ -47,15 +51,15 @@ __all__ = [
     # 'Ray',
     # 'Spline',
     # 'Xline',
-    # 'Dimension',
-    # 'AlignedDimension',
-    # 'ArcDimension',
-    # 'DiametricDimension',
-    # 'LineAngularDimension2',
-    # 'Point3AngularDimension',
-    # 'RadialDimension',
-    # 'RadialDimensionLarge',
-    # 'RotatedDimension',
+    'Dimension',
+    'AlignedDimension',
+    'ArcDimension',
+    'DiametricDimension',
+    'LineAngularDimension2',
+    'Point3AngularDimension',
+    'RadialDimension',
+    'RadialDimensionLarge',
+    'RotatedDimension',
     'SymbolTableRecord',
     'BlockTableRecord',
     'DimStyleTableRecord',
@@ -143,6 +147,17 @@ class AttachmentPoint(IntEnum):
     TOP_LEFT = 1,
     TOP_MID = 0x18,
     TOP_RIGHT = 3
+
+
+class DimensionCenterMarkType(IntEnum):
+    MARK = 0
+    LINE = 1
+    NONE = 2
+
+
+class LineSpacingStyle(IntEnum):
+    AT_LEAST = 1,
+    EXACTLY = 2
 
 
 @dataclass
@@ -840,7 +855,8 @@ class DimStyleCommon:
     # Saved in      : Drawing
     # Initial value : 0
     #
-    # When turned on, suppresses the display of the dimension line and arrowhead between the second extension line and the text.
+    # When turned on, suppresses the display of the dimension line and arrowhead
+    # between the second extension line and the text.
     #
     # Value | Description
     # ------+------------
@@ -1097,7 +1113,9 @@ class DimStyleCommon:
     # Value | Description
     # ------+------------
     #   0   | Draws arrowheads.
-    #  >0   | Draws oblique strokes instead of arrowheads. The size of the oblique strokes is determined by this value multiplied by the DIMSCALE value.
+    #  >0   | Draws oblique strokes instead of arrowheads. The size of the
+    #       | oblique strokes is determined by this value multiplied by the
+    #       | DIMSCALE value.
     dimtsz: Optional[float] = None
 
     # Controls the vertical position of dimension text above or below the
@@ -1193,6 +1211,7 @@ class Entity(DBObject):
     linetype: Optional[str] = None
     linetype_scale: Optional[float] = None
     line_weight: Optional[LineWeight] = None
+    # TODO transparency: Optional[Transparency] = None
     visible: Optional[bool] = None
     transform: Optional[Matrix3d] = None
 
@@ -1206,6 +1225,57 @@ class Entity(DBObject):
 # @dataclass
 # class BlockReference(Entity):
 #     pass
+
+_dbtext_attachment_modes = {
+    AttachmentPoint.BASE_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BOTTOM_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.MIDDLE_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.TOP_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_TOP),
+}
 
 
 @dataclass
@@ -1226,6 +1296,26 @@ class DBText(Entity):
     vertical_mode: Optional[TextVerticalMode] = None
     width_factor: Optional[float] = None
 
+    @staticmethod
+    def new(x: Number, y: Number,
+            text_string: str,
+            justify: AttachmentPoint = None,
+            height: float = None,
+            text_style_name: str = None,
+            **kwargs):
+        dbtext = DBText(height=height, text_string=text_string,
+                        text_style_name=text_style_name, **kwargs)
+
+        if justify is not None:
+            dbtext.set_justify(justify)
+
+        if dbtext.is_default_alignment():
+            dbtext.position = Vector3d(x, y)
+        else:
+            dbtext.alignment_point = Vector3d(x, y)
+
+        return dbtext
+
     def is_default_alignment(self) -> bool:
         return self.horizontal_mode in (None, TextHorizontalMode.TEXT_LEFT) \
             and self.vertical_mode in (None, TextVerticalMode.TEXT_BASE) \
@@ -1237,6 +1327,12 @@ class DBText(Entity):
             return self.position
 
         return self.alignment_point
+
+    def set_justify(self, attach: AttachmentPoint):
+        self.justify = attach
+        if not (self.horizontal_mode is None and self.vertical_mode is None):
+            self.horizontal_mode, self.vertical_mode = \
+                _dbtext_attachment_modes[attach]
 
 
 # @dataclass
@@ -1252,11 +1348,12 @@ class Curve(Entity):
 @dataclass
 class Arc(Curve):
     center: Optional[Vector3d] = None
+    end_angle: Optional[float] = None
     normal: Optional[Vector3d] = None
     radius: Optional[float] = None
     start_angle: Optional[float] = None
-    end_angle: Optional[float] = None
     thickness: Optional[float] = None
+    total_angle: Optional[float] = None
 
     @staticmethod
     def new(center_x: Number, center_y: Number, radius: Number,
@@ -1270,10 +1367,31 @@ class Arc(Curve):
         return Arc(center=Vector3d(center.x, center.y), radius=radius,
                    start_angle=start_angle, end_angle=end_angle, **kwargs)
 
+    # TODO getter of length
 
-# @dataclass
-# class Circle(Curve):
-#     pass
+
+@dataclass
+class Circle(Curve):
+    center: Optional[Vector3d] = None
+    normal: Optional[Vector3d] = None
+    radius: Optional[float] = None
+    thickness: Optional[float] = None
+
+    @staticmethod
+    def new(center_x: Number, center_y: Number, radius: Number, **kwargs):
+        return Circle(center=Vector3d(center_x, center_y), radius=radius,
+                      **kwargs)
+
+    @staticmethod
+    def new_vec2(center: Vector2d, radius: Number, **kwargs):
+        return Circle(center=Vector3d(center.x, center.y), radius=radius,
+                      **kwargs)
+
+    def get_diameter(self) -> float:
+        return max(self.radius * 2 if self.radius else 0, 0)
+
+    def circumference(self) -> float:
+        return self.get_diameter() * math.pi
 
 
 # @dataclass
@@ -1288,8 +1406,9 @@ class Arc(Curve):
 
 @dataclass
 class Line(Curve):
-    start_point: Optional[Vector3d] = None
     end_point: Optional[Vector3d] = None
+    normal: Optional[Vector3d] = None
+    start_point: Optional[Vector3d] = None
     thickness: Optional[float] = None
 
     @staticmethod
@@ -1312,6 +1431,8 @@ class Line(Curve):
     @staticmethod
     def new_vec3(start: Vector3d, end: Vector3d, **kwargs):
         return Line(start_point=start, end_point=end, **kwargs)
+
+    # TODO getter of angle/delta/length
 
 
 @dataclass
@@ -1339,6 +1460,8 @@ class Polyline(Curve):
     def new(*vertices: Vertex, **kwargs):
         return Polyline(vertices=list(vertices), **kwargs)
 
+    # TODO getter of has_bulges/has_width/is_only_lines
+
 
 # @dataclass
 # class Polyline2d(Curve):
@@ -1365,51 +1488,105 @@ class Polyline(Curve):
 #     pass
 
 
-# @dataclass
-# class Dimension(Entity, DimStyleCommon):
-#     text_position: Optional[Vector3d] = None
-#     text_rotation: Optional[float] = None
-#     # TODO
+@dataclass
+class Dimension(Entity, DimStyleCommon):
+    alternate_prefix: Optional[str] = None
+    alternate_suffix: Optional[str] = None
+    alt_suppress_leading_zeros: Optional[bool] = None
+    alt_suppress_trailing_zeros: Optional[bool] = None
+    alt_suppress_zero_feet: Optional[bool] = None
+    alt_suppress_zero_inches: Optional[bool] = None
+    alt_tolerance_suppress_leading_zeros: Optional[bool] = None
+    alt_tolerance_suppress_trailing_zeros: Optional[bool] = None
+    alt_tolerance_suppress_zero_feet: Optional[bool] = None
+    alt_tolerance_suppress_zero_inches: Optional[bool] = None
+    center_mark_size: Optional[float] = None
+    center_mark_type: Optional[DimensionCenterMarkType] = None
+    dimension_style_name: Optional[str] = None
+    dimension_text: Optional[str] = None
+    elevation: Optional[float] = None
+    horizontal_rotation: Optional[float] = None
+    measurement: Optional[float] = None
+    normal: Optional[Vector3d] = None
+    prefix: Optional[str] = None
+    suffix: Optional[str] = None
+    suppress_angular_leading_zeros: Optional[bool] = None
+    suppress_angular_trailing_zeros: Optional[bool] = None
+    suppress_leading_zeros: Optional[bool] = None
+    suppress_trailing_zeros: Optional[bool] = None
+    suppress_zero_feet: Optional[bool] = None
+    suppress_zero_inches: Optional[bool] = None
+    text_attachment: Optional[AttachmentPoint] = None
+    text_line_spacing_factor: Optional[float] = None
+    text_line_spacing_style: Optional[LineSpacingStyle] = None
+    text_position: Optional[Vector3d] = None
+    text_rotation: Optional[float] = None
+    tolerance_suppress_leading_zeros: Optional[bool] = None
+    tolerance_suppress_trailing_zeros: Optional[bool] = None
+    tolerance_suppress_zero_feet: Optional[bool] = None
+    tolerance_suppress_zero_inches: Optional[bool] = None
 
 
-# @dataclass
-# class AlignedDimension(Dimension):
-#     pass
+@dataclass
+class AlignedDimension(Dimension):
+    dim_line_point: Optional[Vector3d] = None
+    oblique: Optional[float] = None
+    x_line1_point: Optional[Vector3d] = None
+    x_line2_point: Optional[Vector3d] = None
+
+    @staticmethod
+    def new(x1: Number, y1: Number,
+            x2: Number, y2: Number,
+            xd: Number, yd: Number,
+            **kwargs):
+        return AlignedDimension(
+            x_line1_point=Vector3d(x1, y1),
+            x_line2_point=Vector3d(x2, y2),
+            dim_line_point=Vector3d(xd, yd),
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(p1: Vector2d, p2: Vector2d, pd: Vector2d, **kwargs):
+        return AlignedDimension(
+            x_line1_point=Vector3d(p1.x, p1.y),
+            x_line2_point=Vector3d(p2.x, p2.y),
+            dim_line_point=Vector3d(pd.x, pd.y),
+            **kwargs)
 
 
-# @dataclass
-# class ArcDimension(Dimension):
-#     pass
+@dataclass
+class ArcDimension(Dimension):
+    pass
 
 
-# @dataclass
-# class DiametricDimension(Dimension):
-#     pass
+@dataclass
+class DiametricDimension(Dimension):
+    pass
 
 
-# @dataclass
-# class LineAngularDimension2(Dimension):
-#     pass
+@dataclass
+class LineAngularDimension2(Dimension):
+    pass
 
 
-# @dataclass
-# class Point3AngularDimension(Dimension):
-#     pass
+@dataclass
+class Point3AngularDimension(Dimension):
+    pass
 
 
-# @dataclass
-# class RadialDimension(Dimension):
-#     pass
+@dataclass
+class RadialDimension(Dimension):
+    pass
 
 
-# @dataclass
-# class RadialDimensionLarge(Dimension):
-#     pass
+@dataclass
+class RadialDimensionLarge(Dimension):
+    pass
 
 
-# @dataclass
-# class RotatedDimension(Dimension):
-#     pass
+@dataclass
+class RotatedDimension(Dimension):
+    pass
 
 
 @dataclass
@@ -1534,8 +1711,26 @@ class Database(Jsonify):
 DBText = csharp_polymorphic_type("SacadMgd.DBText, SacadMgd")(DBText)
 
 Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
+Circle = csharp_polymorphic_type("SacadMgd.Circle, SacadMgd")(Circle)
 Line = csharp_polymorphic_type("SacadMgd.Line, SacadMgd")(Line)
 Polyline = csharp_polymorphic_type("SacadMgd.Polyline, SacadMgd")(Polyline)
+
+AlignedDimension = csharp_polymorphic_type(
+    "SacadMgd.AlignedDimension, SacadMgd")(AlignedDimension)
+ArcDimension = csharp_polymorphic_type(
+    "SacadMgd.ArcDimension, SacadMgd")(ArcDimension)
+DiametricDimension = csharp_polymorphic_type(
+    "SacadMgd.DiametricDimension, SacadMgd")(DiametricDimension)
+LineAngularDimension2 = csharp_polymorphic_type(
+    "SacadMgd.LineAngularDimension2, SacadMgd")(LineAngularDimension2)
+Point3AngularDimension = csharp_polymorphic_type(
+    "SacadMgd.Point3AngularDimension, SacadMgd")(Point3AngularDimension)
+RadialDimension = csharp_polymorphic_type(
+    "SacadMgd.RadialDimension, SacadMgd")(RadialDimension)
+RadialDimensionLarge = csharp_polymorphic_type(
+    "SacadMgd.RadialDimensionLarge, SacadMgd")(RadialDimensionLarge)
+RotatedDimension = csharp_polymorphic_type(
+    "SacadMgd.RotatedDimension, SacadMgd")(RotatedDimension)
 
 BlockTableRecord = csharp_polymorphic_type(
     "SacadMgd.BlockTableRecord, SacadMgd")(BlockTableRecord)
