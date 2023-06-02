@@ -9,6 +9,8 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System.Diagnostics.CodeAnalysis;
+using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 
 namespace SacadMgd
@@ -109,6 +111,31 @@ namespace SacadMgd
             }
 
             return null;
+        }
+
+        [SuppressMessage("ReSharper", "AccessToStaticMemberViaDerivedType")]
+        public static AcDb.ObjectId GetDimblk(this AcDb.Database db,
+            string dimBlkSysVar, string arrowName)
+        {
+            var block = db.GetBlock(arrowName);
+            if (block != null) return block.ObjectId;
+
+            var oldArrowName = AcAp.Application.GetSystemVariable(dimBlkSysVar);
+            try
+            {
+                AcAp.Application.SetSystemVariable(dimBlkSysVar, arrowName);
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(oldArrowName as string))
+                {
+                    AcAp.Application.SetSystemVariable(dimBlkSysVar,
+                        oldArrowName);
+                }
+            }
+
+            block = db.GetBlock(arrowName);
+            return block != null ? block.ObjectId : AcDb.ObjectId.Null;
         }
 
         public static AcDb.ObjectId AddTextStyle(this AcDb.Database db,

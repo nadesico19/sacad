@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcGi = Autodesk.AutoCAD.GraphicsInterface;
@@ -162,21 +161,21 @@ namespace SacadMgd
 
             if (dimblk != null)
             {
-                var blkId = GetDimblk(db, "DIMBLK", dimblk);
+                var blkId = db.GetDimblk("DIMBLK", dimblk);
                 if (blkId.IsValid) dimStyle.Dimblk = blkId;
             }
 
             // TODO does not display the specified block...
             if (dimblk1 != null)
             {
-                var blkId = GetDimblk(db, "DIMBLK1", dimblk1);
+                var blkId = db.GetDimblk("DIMBLK1", dimblk1);
                 if (blkId.IsValid) dimStyle.Dimblk1 = blkId;
             }
 
             // TODO does not display the specified block...
             if (dimblk2 != null)
             {
-                var blkId = GetDimblk(db, "DIMBLK2", dimblk2);
+                var blkId = db.GetDimblk("DIMBLK2", dimblk2);
                 if (blkId.IsValid) dimStyle.Dimblk2 = blkId;
             }
 
@@ -199,7 +198,7 @@ namespace SacadMgd
 
             if (dimldrblk != null)
             {
-                var blkId = GetDimblk(db, "DIMLDRBLK", dimldrblk);
+                var blkId = db.GetDimblk("DIMLDRBLK", dimldrblk);
                 if (blkId.IsValid) dimStyle.Dimldrblk = blkId;
             }
 
@@ -409,31 +408,6 @@ namespace SacadMgd
         public override AcDb.ObjectId AddToSymbolTable(
             AcDb.SymbolTableRecord symbol, AcDb.Database db) =>
             db.AddDimStyle((AcDb.DimStyleTableRecord)symbol);
-
-        [SuppressMessage("ReSharper", "AccessToStaticMemberViaDerivedType")]
-        private AcDb.ObjectId GetDimblk(AcDb.Database db, string dimBlkSysVar,
-            string arrowName)
-        {
-            var block = db.GetBlock(arrowName);
-            if (block != null) return block.ObjectId;
-
-            var oldArrowName = AcAp.Application.GetSystemVariable(dimBlkSysVar);
-            try
-            {
-                AcAp.Application.SetSystemVariable(dimBlkSysVar, arrowName);
-            }
-            finally
-            {
-                if (!string.IsNullOrEmpty(oldArrowName as string))
-                {
-                    AcAp.Application.SetSystemVariable(dimBlkSysVar,
-                        oldArrowName);
-                }
-            }
-
-            block = db.GetBlock(arrowName);
-            return block != null ? block.ObjectId : AcDb.ObjectId.Null;
-        }
     }
 
     [PyType(Name = "sacad.acdb.LayerTableRecord")]

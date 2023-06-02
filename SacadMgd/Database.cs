@@ -59,7 +59,7 @@ namespace SacadMgd
         public AcDb.LineWeight? line_weight;
         public bool? visible;
 
-        // TODO 
+        // TODO GeometricExtents
 
         protected static T New<T>(AcDb.Database db) where T : AcDb.Entity, new()
         {

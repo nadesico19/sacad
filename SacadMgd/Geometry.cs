@@ -25,6 +25,8 @@ namespace SacadMgd
 
         [JsonIgnore] public double Y => __mbr__[1];
 
+        public override string ToString() => $"({X},{Y})";
+
         public AcGe.Vector2d ToVector2d() => (AcGe.Vector2d)this;
 
         public AcGe.Point2d ToPoint2d() => (AcGe.Point2d)this;
@@ -55,6 +57,8 @@ namespace SacadMgd
         [JsonIgnore] public double Y => __mbr__[1];
 
         [JsonIgnore] public double Z => __mbr__[2];
+
+        public override string ToString() => $"({X},{Y},{Z})";
 
         public AcGe.Vector3d ToVector3d() => (AcGe.Vector3d)this;
 

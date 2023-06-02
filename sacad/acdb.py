@@ -161,9 +161,608 @@ class LineSpacingStyle(IntEnum):
 
 
 @dataclass
-class DimStyleCommon:
-    """Common attributes shared between DimStyleTableRecord and Dimension."""
+class DBObject(Jsonify):
+    id: ObjectId = None
 
+
+@dataclass
+class Entity(DBObject):
+    color: Optional[Color] = None
+    color_index: Optional[int] = None
+    layer: Optional[str] = None
+    linetype: Optional[str] = None
+    linetype_scale: Optional[float] = None
+    line_weight: Optional[LineWeight] = None
+    # TODO transparency: Optional[Transparency] = None
+    visible: Optional[bool] = None
+    transform: Optional[Matrix3d] = None
+
+    def transform_by(self, matrix: Matrix3d):
+        if self.transform is None:
+            self.transform = matrix
+        else:
+            pass  # TODO
+
+
+# @dataclass
+# class BlockReference(Entity):
+#     pass
+
+_dbtext_attachment_modes = {
+    AttachmentPoint.BASE_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BASE_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_BASE),
+    AttachmentPoint.BOTTOM_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.BOTTOM_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_BOTTOM),
+    AttachmentPoint.MIDDLE_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.MIDDLE_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_VERTICAL_MID),
+    AttachmentPoint.TOP_ALIGN:
+        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_CENTER:
+        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_FIT:
+        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_LEFT:
+        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_MID:
+        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_TOP),
+    AttachmentPoint.TOP_RIGHT:
+        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_TOP),
+}
+
+
+@dataclass
+class DBText(Entity):
+    alignment_point: Optional[Vector3d] = None
+    height: Optional[float] = None
+    horizontal_mode: Optional[TextHorizontalMode] = None
+    is_mirrored_in_x: Optional[bool] = None
+    is_mirrored_in_y: Optional[bool] = None
+    justify: Optional[AttachmentPoint] = None
+    normal: Optional[Vector3d] = None
+    oblique: Optional[float] = None
+    position: Optional[Vector3d] = None
+    rotation: Optional[float] = None
+    text_string: Optional[str] = None
+    text_style_name: Optional[str] = None
+    thickness: Optional[float] = None
+    vertical_mode: Optional[TextVerticalMode] = None
+    width_factor: Optional[float] = None
+
+    @staticmethod
+    def new(x: Number, y: Number,
+            text_string: str,
+            justify: AttachmentPoint = None,
+            height: float = None,
+            text_style_name: str = None,
+            **kwargs):
+        dbtext = DBText(height=height, text_string=text_string,
+                        text_style_name=text_style_name, **kwargs)
+
+        if justify is not None:
+            dbtext.set_justify(justify)
+
+        if dbtext.is_default_alignment():
+            dbtext.position = Vector3d(x, y)
+        else:
+            dbtext.alignment_point = Vector3d(x, y)
+
+        return dbtext
+
+    def is_default_alignment(self) -> bool:
+        return self.horizontal_mode in (None, TextHorizontalMode.TEXT_LEFT) \
+            and self.vertical_mode in (None, TextVerticalMode.TEXT_BASE) \
+            and self.justify in (None, AttachmentPoint.BASE_LEFT)
+
+    def get_position(self) -> Vector3d:
+        if self.is_default_alignment() \
+                or self.horizontal_mode == TextHorizontalMode.TEXT_FIT:
+            return self.position
+
+        return self.alignment_point
+
+    def set_justify(self, attach: AttachmentPoint):
+        self.justify = attach
+        if not (self.horizontal_mode is None and self.vertical_mode is None):
+            self.horizontal_mode, self.vertical_mode = \
+                _dbtext_attachment_modes[attach]
+
+
+# @dataclass
+# class Hatch(Entity):
+#     pass
+
+
+@dataclass
+class Curve(Entity):
+    pass
+
+
+@dataclass
+class Arc(Curve):
+    center: Optional[Vector3d] = None
+    end_angle: Optional[float] = None
+    normal: Optional[Vector3d] = None
+    radius: Optional[float] = None
+    start_angle: Optional[float] = None
+    thickness: Optional[float] = None
+    total_angle: Optional[float] = None
+
+    @staticmethod
+    def new(center_x: Number, center_y: Number, radius: Number,
+            start_angle: Number, end_angle: Number, **kwargs):
+        return Arc(center=Vector3d(center_x, center_y), radius=radius,
+                   start_angle=start_angle, end_angle=end_angle, **kwargs)
+
+    @staticmethod
+    def new_vec2(center: Vector2d, radius: Number,
+                 start_angle: Number, end_angle: Number, **kwargs):
+        return Arc(center=Vector3d(center.x, center.y), radius=radius,
+                   start_angle=start_angle, end_angle=end_angle, **kwargs)
+
+    # TODO getter of length
+
+
+@dataclass
+class Circle(Curve):
+    center: Optional[Vector3d] = None
+    normal: Optional[Vector3d] = None
+    radius: Optional[float] = None
+    thickness: Optional[float] = None
+
+    @staticmethod
+    def new(center_x: Number, center_y: Number, radius: Number, **kwargs):
+        return Circle(center=Vector3d(center_x, center_y), radius=radius,
+                      **kwargs)
+
+    @staticmethod
+    def new_vec2(center: Vector2d, radius: Number, **kwargs):
+        return Circle(center=Vector3d(center.x, center.y), radius=radius,
+                      **kwargs)
+
+    def get_diameter(self) -> float:
+        return max(self.radius * 2 if self.radius else 0, 0)
+
+    def circumference(self) -> float:
+        return self.get_diameter() * math.pi
+
+
+# @dataclass
+# class Ellipse(Curve):
+#     pass
+
+
+# @dataclass
+# class Leader(Curve):
+#     pass
+
+
+@dataclass
+class Line(Curve):
+    end_point: Optional[Vector3d] = None
+    normal: Optional[Vector3d] = None
+    start_point: Optional[Vector3d] = None
+    thickness: Optional[float] = None
+
+    @staticmethod
+    def new(start_x: Number, start_y: Number,
+            end_x: Number, end_y: Number, **kwargs):
+        return Line(start_point=Vector3d(start_x, start_y),
+                    end_point=Vector3d(end_x, end_y), **kwargs)
+
+    @staticmethod
+    def new_xyz(start_x: Number, start_y: Number, start_z: Number,
+                end_x: Number, end_y: Number, end_z: Number, **kwargs):
+        return Line(start_point=Vector3d(start_x, start_y, start_z),
+                    end_point=Vector3d(end_x, end_y, end_z), **kwargs)
+
+    @staticmethod
+    def new_vec2(start: Vector2d, end: Vector2d, **kwargs):
+        return Line(start_point=Vector3d(start.x, start.y),
+                    end_point=Vector3d(end.x, end.y), **kwargs)
+
+    @staticmethod
+    def new_vec3(start: Vector3d, end: Vector3d, **kwargs):
+        return Line(start_point=start, end_point=end, **kwargs)
+
+    # TODO getter of angle/delta/length
+
+
+@dataclass
+class Vertex(Jsonify):
+    point: Vector2d
+    bulge: Optional[float] = None
+    start_width: Optional[float] = None
+    end_width: Optional[float] = None
+
+    @staticmethod
+    def new(x: Number, y: Number, **kwargs):
+        return Vertex(Vector2d(x, y), **kwargs)
+
+
+@dataclass
+class Polyline(Curve):
+    closed: Optional[bool] = None
+    constant_width: Optional[float] = None
+    elevation: Optional[float] = None
+    normal: Optional[Vector3d] = None
+    thickness: Optional[float] = None
+    vertices: Optional[List[Vertex]] = None
+
+    @staticmethod
+    def new(*vertices: Vertex, **kwargs):
+        return Polyline(vertices=list(vertices), **kwargs)
+
+    # TODO getter of has_bulges/has_width/is_only_lines
+
+
+# @dataclass
+# class Polyline2d(Curve):
+#     pass
+
+
+# @dataclass
+# class Polyline3d(Curve):
+#     pass
+
+
+# @dataclass
+# class Ray(Curve):
+#     pass
+
+
+# @dataclass
+# class Spline(Curve):
+#     pass
+
+
+# @dataclass
+# class Xline(Curve):
+#     pass
+
+
+@dataclass
+class Dimension(Entity):
+    override_style: Optional['DimStyleTableRecord'] = None
+    alternate_prefix: Optional[str] = None
+    alternate_suffix: Optional[str] = None
+    alt_suppress_leading_zeros: Optional[bool] = None
+    alt_suppress_trailing_zeros: Optional[bool] = None
+    alt_suppress_zero_feet: Optional[bool] = None
+    alt_suppress_zero_inches: Optional[bool] = None
+    alt_tolerance_suppress_leading_zeros: Optional[bool] = None
+    alt_tolerance_suppress_trailing_zeros: Optional[bool] = None
+    alt_tolerance_suppress_zero_feet: Optional[bool] = None
+    alt_tolerance_suppress_zero_inches: Optional[bool] = None
+    center_mark_size: Optional[float] = None
+    center_mark_type: Optional[DimensionCenterMarkType] = None
+    dimension_style_name: Optional[str] = None
+    dimension_text: Optional[str] = None
+    elevation: Optional[float] = None
+    horizontal_rotation: Optional[float] = None
+    measurement: Optional[float] = None
+    normal: Optional[Vector3d] = None
+    prefix: Optional[str] = None
+    suffix: Optional[str] = None
+    suppress_angular_leading_zeros: Optional[bool] = None
+    suppress_angular_trailing_zeros: Optional[bool] = None
+    suppress_leading_zeros: Optional[bool] = None
+    suppress_trailing_zeros: Optional[bool] = None
+    suppress_zero_feet: Optional[bool] = None
+    suppress_zero_inches: Optional[bool] = None
+    text_attachment: Optional[AttachmentPoint] = None
+    text_line_spacing_factor: Optional[float] = None
+    text_line_spacing_style: Optional[LineSpacingStyle] = None
+    text_position: Optional[Vector3d] = None
+    text_rotation: Optional[float] = None
+    tolerance_suppress_leading_zeros: Optional[bool] = None
+    tolerance_suppress_trailing_zeros: Optional[bool] = None
+    tolerance_suppress_zero_feet: Optional[bool] = None
+    tolerance_suppress_zero_inches: Optional[bool] = None
+
+
+@dataclass
+class AlignedDimension(Dimension):
+    dim_line_point: Optional[Vector3d] = None
+    oblique: Optional[float] = None
+    x_line1_point: Optional[Vector3d] = None
+    x_line2_point: Optional[Vector3d] = None
+
+    @staticmethod
+    def new(x1: Number, y1: Number,
+            x2: Number, y2: Number,
+            dim_line_x: Number, dim_line_y: Number,
+            **kwargs):
+        return AlignedDimension(
+            x_line1_point=Vector3d(x1, y1),
+            x_line2_point=Vector3d(x2, y2),
+            dim_line_point=Vector3d(dim_line_x, dim_line_y),
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(line1_point: Vector2d, line2_point: Vector2d,
+                 dim_line_point: Vector2d, **kwargs):
+        return AlignedDimension(
+            x_line1_point=Vector3d(line1_point.x, line1_point.y),
+            x_line2_point=Vector3d(line2_point.x, line2_point.y),
+            dim_line_point=Vector3d(dim_line_point.x, dim_line_point.y),
+            **kwargs)
+
+
+@dataclass
+class ArcDimension(Dimension):
+    arc_end_param: Optional[float] = None
+    arc_point: Optional[Vector3d] = None
+    arc_start_param: Optional[float] = None
+
+    # A value of 0 indicates that the arc symbol precedes text, 1 indicates that
+    # the arc symbol is above text, and 2 indicates that no arc symbol is used.
+    #
+    # This overrides the setting of this value in the dimension's style.
+    arc_symbol_type: Optional[int] = None
+
+    center_point: Optional[Vector3d] = None
+    has_leader: Optional[bool] = None
+    leader1_point: Optional[Vector3d] = None
+    leader2_point: Optional[Vector3d] = None
+    x_line1_point: Optional[Vector3d] = None
+    x_line2_point: Optional[Vector3d] = None
+
+    @staticmethod
+    def new(center_x: Number, center_y: Number,
+            x1: Number, y1: Number,
+            x2: Number, y2: Number,
+            arc_x: Number, arc_y: Number,
+            **kwargs):
+        return ArcDimension(
+            center_point=Vector3d(center_x, center_y),
+            x_line1_point=Vector3d(x1, y1),
+            x_line2_point=Vector3d(x2, y2),
+            arc_point=Vector3d(arc_x, arc_y),
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(center: Vector2d, line1_point: Vector2d, line2_point: Vector2d,
+                 arc_point: Vector2d, **kwargs):
+        return ArcDimension(
+            center_point=Vector3d(center.x, center.y),
+            x_line1_point=Vector3d(line1_point.x, line1_point.y),
+            x_line2_point=Vector3d(line2_point.x, line2_point.y),
+            arc_point=Vector3d(arc_point.x, arc_point.y),
+            **kwargs)
+
+
+@dataclass
+class DiametricDimension(Dimension):
+    chord_point: Optional[Vector3d] = None
+    far_chord_point: Optional[Vector3d] = None
+    leader_length: Optional[float] = None
+
+    @staticmethod
+    def new(chord_x: Number, chord_y: Number,
+            far_chord_x: Number, far_chord_y: Number,
+            leader_length: Number,
+            **kwargs):
+        return DiametricDimension(
+            chord_point=Vector3d(chord_x, chord_y),
+            far_chord_point=Vector3d(far_chord_x, far_chord_y),
+            leader_length=leader_length,
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(chord_point: Vector2d,
+                 far_chord_point: Vector2d,
+                 leader_length: Number,
+                 **kwargs):
+        return DiametricDimension(
+            chord_point=Vector3d(chord_point.x, chord_point.y),
+            far_chord_point=Vector3d(far_chord_point.x, far_chord_point.y),
+            leader_length=leader_length,
+            **kwargs)
+
+
+@dataclass
+class LineAngularDimension2(Dimension):
+    arc_point: Optional[Vector3d] = None
+    x_line1_end: Optional[Vector3d] = None
+    x_line1_start: Optional[Vector3d] = None
+    x_line2_end: Optional[Vector3d] = None
+    x_line2_start: Optional[Vector3d] = None
+
+    @staticmethod
+    def new(start1_x: Number, start1_y: Number,
+            end1_x: Number, end1_y: Number,
+            start2_x: Number, start2_y: Number,
+            end2_x: Number, end2_y: Number,
+            arc_x: Number, arc_y: Number,
+            **kwargs):
+        return LineAngularDimension2(
+            x_line1_start=Vector3d(start1_x, start1_y),
+            x_line1_end=Vector3d(end1_x, end1_y),
+            x_line2_start=Vector3d(start2_x, start2_y),
+            x_line2_end=Vector3d(end2_x, end2_y),
+            arc_point=Vector3d(arc_x, arc_y),
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(line1_start: Vector2d, line1_end: Vector2d,
+                 line2_start: Vector2d, line2_end: Vector2d,
+                 arc_point: Vector2d, **kwargs):
+        return LineAngularDimension2(
+            x_line1_start=Vector3d(line1_start.x, line1_start.y),
+            x_line1_end=Vector3d(line1_end.x, line1_end.y),
+            x_line2_start=Vector3d(line2_start.x, line2_start.y),
+            x_line2_end=Vector3d(line2_end.x, line2_end.y),
+            arc_point=Vector3d(arc_point.x, arc_point.y),
+            **kwargs)
+
+
+@dataclass
+class Point3AngularDimension(Dimension):
+    arc_point: Optional[Vector3d] = None
+    center_point: Optional[Vector3d] = None
+    x_line1_point: Optional[Vector3d] = None
+    x_line2_point: Optional[Vector3d] = None
+
+    @staticmethod
+    def new(center_x: Number, center_y: Number,
+            x1: Number, y1: Number,
+            x2: Number, y2: Number,
+            arc_x: Number, arc_y: Number,
+            **kwargs):
+        return Point3AngularDimension(
+            center_point=Vector3d(center_x, center_y),
+            x_line1_point=Vector3d(x1, y1),
+            x_line2_point=Vector3d(x2, y2),
+            arc_point=Vector3d(arc_x, arc_y),
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(center: Vector2d, line1_point: Vector2d, line2_point: Vector2d,
+                 arc_point: Vector2d, **kwargs):
+        return Point3AngularDimension(
+            center_point=Vector3d(center.x, center.y),
+            x_line1_point=Vector3d(line1_point.x, line1_point.y),
+            x_line2_point=Vector3d(line2_point.x, line2_point.y),
+            arc_point=Vector3d(arc_point.x, arc_point.y),
+            **kwargs)
+
+
+@dataclass
+class RadialDimension(Dimension):
+    center: Optional[Vector3d] = None
+    chord_point: Optional[Vector3d] = None
+    leader_length: Optional[float] = None
+
+    @staticmethod
+    def new(center_x: Number, center_y: Number,
+            chord_x: Number, chord_y: Number,
+            leader_length: Number,
+            **kwargs):
+        return RadialDimension(
+            center=Vector3d(center_x, center_y),
+            chord_point=Vector3d(chord_x, chord_y),
+            leader_length=leader_length,
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(center: Vector2d, chord_point: Vector2d, leader_length: Number,
+                 **kwargs):
+        return RadialDimension(
+            center=Vector3d(center.x, center.y),
+            chord_point=Vector3d(chord_point.x, chord_point.y),
+            leader_length=leader_length,
+            **kwargs)
+
+
+@dataclass
+class RadialDimensionLarge(Dimension):
+    center: Optional[Vector3d] = None
+    chord_point: Optional[Vector3d] = None
+    jog_angle: Optional[float] = None
+    jog_point: Optional[Vector3d] = None
+    override_center: Optional[Vector3d] = None
+
+    @staticmethod
+    def new(center_x: Number, center_y: Number,
+            chord_x: Number, chord_y: Number,
+            override_x: Number, override_y: Number,
+            jog_x: Number, jog_y: Number,
+            jog_angle: Number, **kwargs):
+        return RadialDimensionLarge(
+            center=Vector3d(center_x, center_y),
+            chord_point=Vector3d(chord_x, chord_y),
+            override_center=Vector3d(override_x, override_y),
+            jog_point=Vector3d(jog_x, jog_y),
+            jog_angle=jog_angle,
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(center: Vector2d, chord_point: Vector2d,
+                 override_center: Vector2d, jog_point: Vector2d,
+                 jog_angle: Number, **kwargs):
+        return RadialDimensionLarge(
+            center=Vector3d(center.x, center.y),
+            chord_point=Vector3d(chord_point.x, chord_point.y),
+            override_center=Vector3d(override_center.x, override_center.y),
+            jog_point=Vector3d(jog_point.x, jog_point.y),
+            jog_angle=jog_angle,
+            **kwargs)
+
+
+@dataclass
+class RotatedDimension(Dimension):
+    dim_line_point: Optional[Vector3d] = None
+    oblique: Optional[float] = None
+    rotation: Optional[float] = None
+    x_line1_point: Optional[Vector3d] = None
+    x_line2_point: Optional[Vector3d] = None
+
+    @staticmethod
+    def new(rotation: Number,
+            x1: Number, y1: Number,
+            x2: Number, y2: Number,
+            dim_line_x: Number, dim_line_y: Number,
+            **kwargs):
+        return RotatedDimension(
+            rotation=rotation,
+            x_line1_point=Vector3d(x1, y1),
+            x_line2_point=Vector3d(x2, y2),
+            dim_line_point=Vector3d(dim_line_x, dim_line_y),
+            **kwargs)
+
+    @staticmethod
+    def new_vec2(rotation: Number, line1_point: Vector2d, line2_point: Vector2d,
+                 dim_line_point: Vector2d, **kwargs):
+        return RotatedDimension(
+            rotation=rotation,
+            x_line1_point=Vector3d(line1_point.x, line1_point.y),
+            x_line2_point=Vector3d(line2_point.x, line2_point.y),
+            dim_line_point=Vector3d(dim_line_point.x, dim_line_point.y),
+            **kwargs)
+
+
+@dataclass
+class SymbolTableRecord(DBObject):
+    name: Optional[str] = None
+
+
+@dataclass
+class BlockTableRecord(SymbolTableRecord):
+    entities: List[Entity] = field(default_factory=list)
+
+
+@dataclass
+class DimStyleTableRecord(SymbolTableRecord):
     # Controls the number of precision places displayed in angular dimensions.
     #
     # Type          : Integer
@@ -1132,6 +1731,13 @@ class DimStyleCommon:
     # less than 0.7.
     dimtvp: Optional[float] = None
 
+    # Specifies the text style of the dimension.
+    #
+    # Type          : String
+    # Saved in      : Drawing
+    # Initial value : Standard
+    dimtxsty: Optional[str] = None
+
     # Specifies the height of dimension text, unless the current text style has
     # a fixed height.
     #
@@ -1196,417 +1802,6 @@ class DimStyleCommon:
     #  12   | Suppresses both leading and trailing zeros (for example, 0.5000
     #       | becomes .5)
     dimzin: Optional[int] = None
-
-
-@dataclass
-class DBObject(Jsonify):
-    id: ObjectId = None
-
-
-@dataclass
-class Entity(DBObject):
-    color: Optional[Color] = None
-    color_index: Optional[int] = None
-    layer: Optional[str] = None
-    linetype: Optional[str] = None
-    linetype_scale: Optional[float] = None
-    line_weight: Optional[LineWeight] = None
-    # TODO transparency: Optional[Transparency] = None
-    visible: Optional[bool] = None
-    transform: Optional[Matrix3d] = None
-
-    def transform_by(self, matrix: Matrix3d):
-        if self.transform is None:
-            self.transform = matrix
-        else:
-            pass  # TODO
-
-
-# @dataclass
-# class BlockReference(Entity):
-#     pass
-
-_dbtext_attachment_modes = {
-    AttachmentPoint.BASE_ALIGN:
-        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_BASE),
-    AttachmentPoint.BASE_CENTER:
-        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_BASE),
-    AttachmentPoint.BASE_FIT:
-        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_BASE),
-    AttachmentPoint.BASE_LEFT:
-        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_BASE),
-    AttachmentPoint.BASE_MID:
-        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_BASE),
-    AttachmentPoint.BASE_RIGHT:
-        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_BASE),
-    AttachmentPoint.BOTTOM_ALIGN:
-        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_BOTTOM),
-    AttachmentPoint.BOTTOM_CENTER:
-        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_BOTTOM),
-    AttachmentPoint.BOTTOM_FIT:
-        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_BOTTOM),
-    AttachmentPoint.BOTTOM_LEFT:
-        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_BOTTOM),
-    AttachmentPoint.BOTTOM_MID:
-        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_BOTTOM),
-    AttachmentPoint.BOTTOM_RIGHT:
-        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_BOTTOM),
-    AttachmentPoint.MIDDLE_ALIGN:
-        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_VERTICAL_MID),
-    AttachmentPoint.MIDDLE_CENTER:
-        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_VERTICAL_MID),
-    AttachmentPoint.MIDDLE_FIT:
-        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_VERTICAL_MID),
-    AttachmentPoint.MIDDLE_LEFT:
-        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_VERTICAL_MID),
-    AttachmentPoint.MIDDLE_MID:
-        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_VERTICAL_MID),
-    AttachmentPoint.MIDDLE_RIGHT:
-        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_VERTICAL_MID),
-    AttachmentPoint.TOP_ALIGN:
-        (TextHorizontalMode.TEXT_ALIGN, TextVerticalMode.TEXT_TOP),
-    AttachmentPoint.TOP_CENTER:
-        (TextHorizontalMode.TEXT_CENTER, TextVerticalMode.TEXT_TOP),
-    AttachmentPoint.TOP_FIT:
-        (TextHorizontalMode.TEXT_FIT, TextVerticalMode.TEXT_TOP),
-    AttachmentPoint.TOP_LEFT:
-        (TextHorizontalMode.TEXT_LEFT, TextVerticalMode.TEXT_TOP),
-    AttachmentPoint.TOP_MID:
-        (TextHorizontalMode.TEXT_MID, TextVerticalMode.TEXT_TOP),
-    AttachmentPoint.TOP_RIGHT:
-        (TextHorizontalMode.TEXT_RIGHT, TextVerticalMode.TEXT_TOP),
-}
-
-
-@dataclass
-class DBText(Entity):
-    alignment_point: Optional[Vector3d] = None
-    height: Optional[float] = None
-    horizontal_mode: Optional[TextHorizontalMode] = None
-    is_mirrored_in_x: Optional[bool] = None
-    is_mirrored_in_y: Optional[bool] = None
-    justify: Optional[AttachmentPoint] = None
-    normal: Optional[Vector3d] = None
-    oblique: Optional[float] = None
-    position: Optional[Vector3d] = None
-    rotation: Optional[float] = None
-    text_string: Optional[str] = None
-    text_style_name: Optional[str] = None
-    thickness: Optional[float] = None
-    vertical_mode: Optional[TextVerticalMode] = None
-    width_factor: Optional[float] = None
-
-    @staticmethod
-    def new(x: Number, y: Number,
-            text_string: str,
-            justify: AttachmentPoint = None,
-            height: float = None,
-            text_style_name: str = None,
-            **kwargs):
-        dbtext = DBText(height=height, text_string=text_string,
-                        text_style_name=text_style_name, **kwargs)
-
-        if justify is not None:
-            dbtext.set_justify(justify)
-
-        if dbtext.is_default_alignment():
-            dbtext.position = Vector3d(x, y)
-        else:
-            dbtext.alignment_point = Vector3d(x, y)
-
-        return dbtext
-
-    def is_default_alignment(self) -> bool:
-        return self.horizontal_mode in (None, TextHorizontalMode.TEXT_LEFT) \
-            and self.vertical_mode in (None, TextVerticalMode.TEXT_BASE) \
-            and self.justify in (None, AttachmentPoint.BASE_LEFT)
-
-    def get_position(self) -> Vector3d:
-        if self.is_default_alignment() \
-                or self.horizontal_mode == TextHorizontalMode.TEXT_FIT:
-            return self.position
-
-        return self.alignment_point
-
-    def set_justify(self, attach: AttachmentPoint):
-        self.justify = attach
-        if not (self.horizontal_mode is None and self.vertical_mode is None):
-            self.horizontal_mode, self.vertical_mode = \
-                _dbtext_attachment_modes[attach]
-
-
-# @dataclass
-# class Hatch(Entity):
-#     pass
-
-
-@dataclass
-class Curve(Entity):
-    pass
-
-
-@dataclass
-class Arc(Curve):
-    center: Optional[Vector3d] = None
-    end_angle: Optional[float] = None
-    normal: Optional[Vector3d] = None
-    radius: Optional[float] = None
-    start_angle: Optional[float] = None
-    thickness: Optional[float] = None
-    total_angle: Optional[float] = None
-
-    @staticmethod
-    def new(center_x: Number, center_y: Number, radius: Number,
-            start_angle: Number, end_angle: Number, **kwargs):
-        return Arc(center=Vector3d(center_x, center_y), radius=radius,
-                   start_angle=start_angle, end_angle=end_angle, **kwargs)
-
-    @staticmethod
-    def new_vec2(center: Vector2d, radius: Number,
-                 start_angle: Number, end_angle: Number, **kwargs):
-        return Arc(center=Vector3d(center.x, center.y), radius=radius,
-                   start_angle=start_angle, end_angle=end_angle, **kwargs)
-
-    # TODO getter of length
-
-
-@dataclass
-class Circle(Curve):
-    center: Optional[Vector3d] = None
-    normal: Optional[Vector3d] = None
-    radius: Optional[float] = None
-    thickness: Optional[float] = None
-
-    @staticmethod
-    def new(center_x: Number, center_y: Number, radius: Number, **kwargs):
-        return Circle(center=Vector3d(center_x, center_y), radius=radius,
-                      **kwargs)
-
-    @staticmethod
-    def new_vec2(center: Vector2d, radius: Number, **kwargs):
-        return Circle(center=Vector3d(center.x, center.y), radius=radius,
-                      **kwargs)
-
-    def get_diameter(self) -> float:
-        return max(self.radius * 2 if self.radius else 0, 0)
-
-    def circumference(self) -> float:
-        return self.get_diameter() * math.pi
-
-
-# @dataclass
-# class Ellipse(Curve):
-#     pass
-
-
-# @dataclass
-# class Leader(Curve):
-#     pass
-
-
-@dataclass
-class Line(Curve):
-    end_point: Optional[Vector3d] = None
-    normal: Optional[Vector3d] = None
-    start_point: Optional[Vector3d] = None
-    thickness: Optional[float] = None
-
-    @staticmethod
-    def new(start_x: Number, start_y: Number,
-            end_x: Number, end_y: Number, **kwargs):
-        return Line(start_point=Vector3d(start_x, start_y),
-                    end_point=Vector3d(end_x, end_y), **kwargs)
-
-    @staticmethod
-    def new_xyz(start_x: Number, start_y: Number, start_z: Number,
-                end_x: Number, end_y: Number, end_z: Number, **kwargs):
-        return Line(start_point=Vector3d(start_x, start_y, start_z),
-                    end_point=Vector3d(end_x, end_y, end_z), **kwargs)
-
-    @staticmethod
-    def new_vec2(start: Vector2d, end: Vector2d, **kwargs):
-        return Line(start_point=Vector3d(start.x, start.y),
-                    end_point=Vector3d(end.x, end.y), **kwargs)
-
-    @staticmethod
-    def new_vec3(start: Vector3d, end: Vector3d, **kwargs):
-        return Line(start_point=start, end_point=end, **kwargs)
-
-    # TODO getter of angle/delta/length
-
-
-@dataclass
-class Vertex(Jsonify):
-    point: Vector2d
-    bulge: Optional[float] = None
-    start_width: Optional[float] = None
-    end_width: Optional[float] = None
-
-    @staticmethod
-    def new(x: Number, y: Number, **kwargs):
-        return Vertex(Vector2d(x, y), **kwargs)
-
-
-@dataclass
-class Polyline(Curve):
-    closed: Optional[bool] = None
-    constant_width: Optional[float] = None
-    elevation: Optional[float] = None
-    normal: Optional[Vector3d] = None
-    thickness: Optional[float] = None
-    vertices: Optional[List[Vertex]] = None
-
-    @staticmethod
-    def new(*vertices: Vertex, **kwargs):
-        return Polyline(vertices=list(vertices), **kwargs)
-
-    # TODO getter of has_bulges/has_width/is_only_lines
-
-
-# @dataclass
-# class Polyline2d(Curve):
-#     pass
-
-
-# @dataclass
-# class Polyline3d(Curve):
-#     pass
-
-
-# @dataclass
-# class Ray(Curve):
-#     pass
-
-
-# @dataclass
-# class Spline(Curve):
-#     pass
-
-
-# @dataclass
-# class Xline(Curve):
-#     pass
-
-
-@dataclass
-class Dimension(Entity, DimStyleCommon):
-    alternate_prefix: Optional[str] = None
-    alternate_suffix: Optional[str] = None
-    alt_suppress_leading_zeros: Optional[bool] = None
-    alt_suppress_trailing_zeros: Optional[bool] = None
-    alt_suppress_zero_feet: Optional[bool] = None
-    alt_suppress_zero_inches: Optional[bool] = None
-    alt_tolerance_suppress_leading_zeros: Optional[bool] = None
-    alt_tolerance_suppress_trailing_zeros: Optional[bool] = None
-    alt_tolerance_suppress_zero_feet: Optional[bool] = None
-    alt_tolerance_suppress_zero_inches: Optional[bool] = None
-    center_mark_size: Optional[float] = None
-    center_mark_type: Optional[DimensionCenterMarkType] = None
-    dimension_style_name: Optional[str] = None
-    dimension_text: Optional[str] = None
-    elevation: Optional[float] = None
-    horizontal_rotation: Optional[float] = None
-    measurement: Optional[float] = None
-    normal: Optional[Vector3d] = None
-    prefix: Optional[str] = None
-    suffix: Optional[str] = None
-    suppress_angular_leading_zeros: Optional[bool] = None
-    suppress_angular_trailing_zeros: Optional[bool] = None
-    suppress_leading_zeros: Optional[bool] = None
-    suppress_trailing_zeros: Optional[bool] = None
-    suppress_zero_feet: Optional[bool] = None
-    suppress_zero_inches: Optional[bool] = None
-    text_attachment: Optional[AttachmentPoint] = None
-    text_line_spacing_factor: Optional[float] = None
-    text_line_spacing_style: Optional[LineSpacingStyle] = None
-    text_position: Optional[Vector3d] = None
-    text_rotation: Optional[float] = None
-    tolerance_suppress_leading_zeros: Optional[bool] = None
-    tolerance_suppress_trailing_zeros: Optional[bool] = None
-    tolerance_suppress_zero_feet: Optional[bool] = None
-    tolerance_suppress_zero_inches: Optional[bool] = None
-
-
-@dataclass
-class AlignedDimension(Dimension):
-    dim_line_point: Optional[Vector3d] = None
-    oblique: Optional[float] = None
-    x_line1_point: Optional[Vector3d] = None
-    x_line2_point: Optional[Vector3d] = None
-
-    @staticmethod
-    def new(x1: Number, y1: Number,
-            x2: Number, y2: Number,
-            xd: Number, yd: Number,
-            **kwargs):
-        return AlignedDimension(
-            x_line1_point=Vector3d(x1, y1),
-            x_line2_point=Vector3d(x2, y2),
-            dim_line_point=Vector3d(xd, yd),
-            **kwargs)
-
-    @staticmethod
-    def new_vec2(p1: Vector2d, p2: Vector2d, pd: Vector2d, **kwargs):
-        return AlignedDimension(
-            x_line1_point=Vector3d(p1.x, p1.y),
-            x_line2_point=Vector3d(p2.x, p2.y),
-            dim_line_point=Vector3d(pd.x, pd.y),
-            **kwargs)
-
-
-@dataclass
-class ArcDimension(Dimension):
-    pass
-
-
-@dataclass
-class DiametricDimension(Dimension):
-    pass
-
-
-@dataclass
-class LineAngularDimension2(Dimension):
-    pass
-
-
-@dataclass
-class Point3AngularDimension(Dimension):
-    pass
-
-
-@dataclass
-class RadialDimension(Dimension):
-    pass
-
-
-@dataclass
-class RadialDimensionLarge(Dimension):
-    pass
-
-
-@dataclass
-class RotatedDimension(Dimension):
-    pass
-
-
-@dataclass
-class SymbolTableRecord(DBObject):
-    name: Optional[str] = None
-
-
-@dataclass
-class BlockTableRecord(SymbolTableRecord):
-    entities: List[Entity] = field(default_factory=list)
-
-
-@dataclass
-class DimStyleTableRecord(SymbolTableRecord, DimStyleCommon):
-    # Specifies the text style of the dimension.
-    #
-    # Type          : String
-    # Saved in      : Drawing
-    # Initial value : Standard
-    dimtxsty: Optional[str] = None
 
 
 @dataclass
