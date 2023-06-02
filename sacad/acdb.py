@@ -175,13 +175,10 @@ class Entity(DBObject):
     line_weight: Optional[LineWeight] = None
     # TODO transparency: Optional[Transparency] = None
     visible: Optional[bool] = None
-    transform: Optional[Matrix3d] = None
+    matrix: Optional[Matrix3d] = None
 
     def transform_by(self, matrix: Matrix3d):
-        if self.transform is None:
-            self.transform = matrix
-        else:
-            pass  # TODO
+        self.matrix = matrix if self.matrix is None else matrix * self.matrix
 
 
 # @dataclass

@@ -79,4 +79,12 @@ namespace SacadMgd
         public static readonly Vector3d Origin = new Vector3d
             { __mbr__ = new[] { 0.0, 0, 0 } };
     }
+
+    public sealed class Matrix3d
+    {
+        public string __cls__ = "sacad.acge.Matrix3d";
+        public double[] __mbr__;
+
+        public AcGe.Matrix3d ToMatrix3d() => new AcGe.Matrix3d(__mbr__);
+    }
 }

@@ -337,214 +337,213 @@ namespace SacadMgd
             tolerance_suppress_zero_feet = dim.ToleranceSuppressZeroFeet;
             tolerance_suppress_zero_inches = dim.ToleranceSuppressZeroInches;
 
-            if (dim.DimensionStyle.IsValid)
+            var trans = db.TransactionManager.TopTransaction;
+            var dimStyle = dim.DimensionStyle.IsValid
+                ? (AcDb.DimStyleTableRecord)trans.GetObject(dim.DimensionStyle,
+                    AcDb.OpenMode.ForRead)
+                : DefaultStyle;
+
+            if (dim.Dimadec != dimStyle.Dimadec)
+                GetOverrides().dimadec = dim.Dimadec;
+            if (dim.Dimalt != dimStyle.Dimalt)
+                GetOverrides().dimalt = dim.Dimalt;
+            if (dim.Dimaltd != dimStyle.Dimaltd)
+                GetOverrides().dimaltd = dim.Dimaltd;
+            if (Math.Abs(dim.Dimaltf - dimStyle.Dimaltf) > Tolerance)
+                GetOverrides().dimaltf = dim.Dimaltf;
+            if (Math.Abs(dim.Dimaltrnd - dimStyle.Dimaltrnd) > Tolerance)
+                GetOverrides().dimaltrnd = dim.Dimaltrnd;
+            if (dim.Dimalttd != dimStyle.Dimalttd)
+                GetOverrides().dimalttd = dim.Dimalttd;
+            if (dim.Dimalttz != dimStyle.Dimalttz)
+                GetOverrides().dimalttz = dim.Dimalttz;
+            if (dim.Dimaltu != dimStyle.Dimaltu)
+                GetOverrides().dimaltu = dim.Dimaltu;
+            if (dim.Dimaltz != dimStyle.Dimaltz)
+                GetOverrides().dimaltz = dim.Dimaltz;
+            if (dim.Dimapost != dimStyle.Dimapost)
+                GetOverrides().dimapost = dim.Dimapost;
+            if (dim.Dimarcsym != dimStyle.Dimarcsym)
+                GetOverrides().dimarcsym = dim.Dimarcsym;
+            if (Math.Abs(dim.Dimasz - dimStyle.Dimasz) > Tolerance)
+                GetOverrides().dimasz = dim.Dimasz;
+            if (dim.Dimatfit != dimStyle.Dimatfit)
+                GetOverrides().dimatfit = dim.Dimatfit;
+            if (dim.Dimaunit != dimStyle.Dimaunit)
+                GetOverrides().dimaunit = dim.Dimaunit;
+            if (dim.Dimazin != dimStyle.Dimazin)
+                GetOverrides().dimazin = dim.Dimazin;
+
+            if (dim.Dimblk != dimStyle.Dimblk && dim.Dimblk.IsValid)
             {
-                var trans = db.TransactionManager.TopTransaction;
-                var dimStyle = (AcDb.DimStyleTableRecord)trans.GetObject(
-                    dim.DimensionStyle, AcDb.OpenMode.ForRead);
-
-                if (dim.Dimadec != dimStyle.Dimadec)
-                    GetOverrides().dimadec = dim.Dimadec;
-                if (dim.Dimalt != dimStyle.Dimalt)
-                    GetOverrides().dimalt = dim.Dimalt;
-                if (dim.Dimaltd != dimStyle.Dimaltd)
-                    GetOverrides().dimaltd = dim.Dimaltd;
-                if (Math.Abs(dim.Dimaltf - dimStyle.Dimaltf) > Tolerance)
-                    GetOverrides().dimaltf = dim.Dimaltf;
-                if (Math.Abs(dim.Dimaltrnd - dimStyle.Dimaltrnd) > Tolerance)
-                    GetOverrides().dimaltrnd = dim.Dimaltrnd;
-                if (dim.Dimalttd != dimStyle.Dimalttd)
-                    GetOverrides().dimalttd = dim.Dimalttd;
-                if (dim.Dimalttz != dimStyle.Dimalttz)
-                    GetOverrides().dimalttz = dim.Dimalttz;
-                if (dim.Dimaltu != dimStyle.Dimaltu)
-                    GetOverrides().dimaltu = dim.Dimaltu;
-                if (dim.Dimaltz != dimStyle.Dimaltz)
-                    GetOverrides().dimaltz = dim.Dimaltz;
-                if (dim.Dimapost != dimStyle.Dimapost)
-                    GetOverrides().dimapost = dim.Dimapost;
-                if (dim.Dimarcsym != dimStyle.Dimarcsym)
-                    GetOverrides().dimarcsym = dim.Dimarcsym;
-                if (Math.Abs(dim.Dimasz - dimStyle.Dimasz) > Tolerance)
-                    GetOverrides().dimasz = dim.Dimasz;
-                if (dim.Dimatfit != dimStyle.Dimatfit)
-                    GetOverrides().dimatfit = dim.Dimatfit;
-                if (dim.Dimaunit != dimStyle.Dimaunit)
-                    GetOverrides().dimaunit = dim.Dimaunit;
-                if (dim.Dimazin != dimStyle.Dimazin)
-                    GetOverrides().dimazin = dim.Dimazin;
-
-                if (dim.Dimblk != dimStyle.Dimblk && dim.Dimblk.IsValid)
-                {
-                    var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
-                        dim.Dimblk, AcDb.OpenMode.ForRead);
-                    GetOverrides().dimblk = symbol.Name;
-                }
-
-                if (dim.Dimblk1 != dimStyle.Dimblk1 && dim.Dimblk1.IsValid)
-                {
-                    var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
-                        dim.Dimblk1, AcDb.OpenMode.ForRead);
-                    GetOverrides().dimblk1 = symbol.Name;
-                }
-
-                if (dim.Dimblk2 != dimStyle.Dimblk2 && dim.Dimblk2.IsValid)
-                {
-                    var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
-                        dim.Dimblk2, AcDb.OpenMode.ForRead);
-                    GetOverrides().dimblk2 = symbol.Name;
-                }
-
-                if (Math.Abs(dim.Dimcen - dimStyle.Dimcen) > Tolerance)
-                    GetOverrides().dimcen = dim.Dimcen;
-
-                if (dim.Dimclrd != dimStyle.Dimclrd)
-                {
-                    GetOverrides().dimclrd = PyWrapper<Color>.Create(
-                        Color.FromArx(dim.Dimclrd));
-                }
-
-                if (dim.Dimclre != dimStyle.Dimclre)
-                {
-                    GetOverrides().dimclre = PyWrapper<Color>.Create(
-                        Color.FromArx(dim.Dimclre));
-                }
-
-                if (dim.Dimclrt != dimStyle.Dimclrt)
-                {
-                    GetOverrides().dimclrt = PyWrapper<Color>.Create(
-                        Color.FromArx(dim.Dimclrt));
-                }
-
-                if (dim.Dimdec != dimStyle.Dimdec)
-                    GetOverrides().dimdec = dim.Dimdec;
-                if (Math.Abs(dim.Dimdle - dimStyle.Dimdle) > Tolerance)
-                    GetOverrides().dimdle = dim.Dimdle;
-                if (Math.Abs(dim.Dimdli - dimStyle.Dimdli) > Tolerance)
-                    GetOverrides().dimdli = dim.Dimdli;
-                if (dim.Dimdsep != dimStyle.Dimdsep)
-                    GetOverrides().dimdsep = dim.Dimdsep.ToString();
-                if (Math.Abs(dim.Dimexe - dimStyle.Dimexe) > Tolerance)
-                    GetOverrides().dimexe = dim.Dimexe;
-                if (Math.Abs(dim.Dimexo - dimStyle.Dimexo) > Tolerance)
-                    GetOverrides().dimexo = dim.Dimexo;
-                if (dim.Dimfrac != dimStyle.Dimfrac)
-                    GetOverrides().dimfrac = dim.Dimfrac;
-                if (Math.Abs(dim.Dimfxlen - dimStyle.Dimfxlen) > Tolerance)
-                    GetOverrides().dimfxlen = dim.Dimfxlen;
-                if (dim.DimfxlenOn != dimStyle.DimfxlenOn)
-                    GetOverrides().dimfxlenOn = dim.DimfxlenOn;
-                if (Math.Abs(dim.Dimgap - dimStyle.Dimgap) > Tolerance)
-                    GetOverrides().dimgap = dim.Dimgap;
-                if (Math.Abs(dim.Dimjogang - dimStyle.Dimjogang) > Tolerance)
-                    GetOverrides().dimjogang = dim.Dimjogang;
-                if (dim.Dimjust != dimStyle.Dimjust)
-                    GetOverrides().dimjust = dim.Dimjust;
-
-                if (dim.Dimldrblk != dimStyle.Dimldrblk &&
-                    dim.Dimldrblk.IsValid)
-                {
-                    var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
-                        dim.Dimldrblk, AcDb.OpenMode.ForRead);
-                    GetOverrides().dimldrblk = symbol.Name;
-                }
-
-                if (Math.Abs(dim.Dimlfac - dimStyle.Dimlfac) > Tolerance)
-                    GetOverrides().dimlfac = dim.Dimlfac;
-                if (dim.Dimlim != dimStyle.Dimlim)
-                    GetOverrides().dimlim = dim.Dimlim;
-
-                if (dim.Dimltex1 != dimStyle.Dimltex1 && dim.Dimltex1.IsValid)
-                {
-                    var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
-                        dim.Dimltex1, AcDb.OpenMode.ForRead);
-                    GetOverrides().dimltex1 = symbol.Name;
-                }
-
-                if (dim.Dimltex2 != dimStyle.Dimltex2 && dim.Dimltex2.IsValid)
-                {
-                    var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
-                        dim.Dimltex2, AcDb.OpenMode.ForRead);
-                    GetOverrides().dimltex2 = symbol.Name;
-                }
-
-                if (dim.Dimltype != dimStyle.Dimltype && dim.Dimltype.IsValid)
-                {
-                    var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
-                        dim.Dimltype, AcDb.OpenMode.ForRead);
-                    GetOverrides().dimltype = symbol.Name;
-                }
-
-                if (dim.Dimlunit != dimStyle.Dimlunit)
-                    GetOverrides().dimlunit = dim.Dimlunit;
-                if (dim.Dimlwd != dimStyle.Dimlwd)
-                    GetOverrides().dimlwd = dim.Dimlwd;
-                if (dim.Dimlwe != dimStyle.Dimlwe)
-                    GetOverrides().dimlwe = dim.Dimlwe;
-                if (dim.Dimpost != dimStyle.Dimpost)
-                    GetOverrides().dimpost = dim.Dimpost;
-                if (Math.Abs(dim.Dimrnd - dimStyle.Dimrnd) > Tolerance)
-                    GetOverrides().dimrnd = dim.Dimrnd;
-                if (dim.Dimsah != dimStyle.Dimsah)
-                    GetOverrides().dimsah = dim.Dimsah;
-                if (Math.Abs(dim.Dimscale - dimStyle.Dimscale) > Tolerance)
-                    GetOverrides().dimscale = dim.Dimscale;
-                if (dim.Dimsd1 != dimStyle.Dimsd1)
-                    GetOverrides().dimsd1 = dim.Dimsd1;
-                if (dim.Dimsd2 != dimStyle.Dimsd2)
-                    GetOverrides().dimsd2 = dim.Dimsd2;
-                if (dim.Dimse1 != dimStyle.Dimse1)
-                    GetOverrides().dimse1 = dim.Dimse1;
-                if (dim.Dimse2 != dimStyle.Dimse2)
-                    GetOverrides().dimse2 = dim.Dimse2;
-                if (dim.Dimsoxd != dimStyle.Dimsoxd)
-                    GetOverrides().dimsoxd = dim.Dimsoxd;
-                if (dim.Dimtad != dimStyle.Dimtad)
-                    GetOverrides().dimtad = dim.Dimtad;
-                if (dim.Dimtdec != dimStyle.Dimtdec)
-                    GetOverrides().dimtdec = dim.Dimtdec;
-                if (Math.Abs(dim.Dimtfac - dimStyle.Dimtfac) > Tolerance)
-                    GetOverrides().dimtfac = dim.Dimtfac;
-                if (dim.Dimtfill != dimStyle.Dimtfill)
-                    GetOverrides().dimtfill = dim.Dimtfill;
-
-                if (dim.Dimtfillclr != dimStyle.Dimtfillclr)
-                {
-                    GetOverrides().dimtfillclr = PyWrapper<Color>.Create(
-                        Color.FromArx(dim.Dimtfillclr));
-                }
-
-                if (dim.Dimtih != dimStyle.Dimtih)
-                    GetOverrides().dimtih = dim.Dimtih;
-                if (dim.Dimtix != dimStyle.Dimtix)
-                    GetOverrides().dimtix = dim.Dimtix;
-                if (Math.Abs(dim.Dimtm - dimStyle.Dimtm) > Tolerance)
-                    GetOverrides().dimtm = dim.Dimtm;
-                if (dim.Dimtmove != dimStyle.Dimtmove)
-                    GetOverrides().dimtmove = dim.Dimtmove;
-                if (dim.Dimtofl != dimStyle.Dimtofl)
-                    GetOverrides().dimtofl = dim.Dimtofl;
-                if (dim.Dimtoh != dimStyle.Dimtoh)
-                    GetOverrides().dimtoh = dim.Dimtoh;
-                if (dim.Dimtol != dimStyle.Dimtol)
-                    GetOverrides().dimtol = dim.Dimtol;
-                if (dim.Dimtolj != dimStyle.Dimtolj)
-                    GetOverrides().dimtolj = dim.Dimtolj;
-                if (Math.Abs(dim.Dimtp - dimStyle.Dimtp) > Tolerance)
-                    GetOverrides().dimtp = dim.Dimtp;
-                if (Math.Abs(dim.Dimtsz - dimStyle.Dimtsz) > Tolerance)
-                    GetOverrides().dimtsz = dim.Dimtsz;
-                if (Math.Abs(dim.Dimtvp - dimStyle.Dimtvp) > Tolerance)
-                    GetOverrides().dimtvp = dim.Dimtvp;
-                if (Math.Abs(dim.Dimtxt - dimStyle.Dimtxt) > Tolerance)
-                    GetOverrides().dimtxt = dim.Dimtxt;
-                if (dim.Dimtzin != dimStyle.Dimtzin)
-                    GetOverrides().dimtzin = dim.Dimtzin;
-                if (dim.Dimupt != dimStyle.Dimupt)
-                    GetOverrides().dimupt = dim.Dimupt;
-                if (dim.Dimzin != dimStyle.Dimzin)
-                    GetOverrides().dimzin = dim.Dimzin;
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dim.Dimblk, AcDb.OpenMode.ForRead);
+                GetOverrides().dimblk = symbol.Name;
             }
+
+            if (dim.Dimblk1 != dimStyle.Dimblk1 && dim.Dimblk1.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dim.Dimblk1, AcDb.OpenMode.ForRead);
+                GetOverrides().dimblk1 = symbol.Name;
+            }
+
+            if (dim.Dimblk2 != dimStyle.Dimblk2 && dim.Dimblk2.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dim.Dimblk2, AcDb.OpenMode.ForRead);
+                GetOverrides().dimblk2 = symbol.Name;
+            }
+
+            if (Math.Abs(dim.Dimcen - dimStyle.Dimcen) > Tolerance)
+                GetOverrides().dimcen = dim.Dimcen;
+
+            if (dim.Dimclrd != dimStyle.Dimclrd)
+            {
+                GetOverrides().dimclrd = PyWrapper<Color>.Create(
+                    Color.FromArx(dim.Dimclrd));
+            }
+
+            if (dim.Dimclre != dimStyle.Dimclre)
+            {
+                GetOverrides().dimclre = PyWrapper<Color>.Create(
+                    Color.FromArx(dim.Dimclre));
+            }
+
+            if (dim.Dimclrt != dimStyle.Dimclrt)
+            {
+                GetOverrides().dimclrt = PyWrapper<Color>.Create(
+                    Color.FromArx(dim.Dimclrt));
+            }
+
+            if (dim.Dimdec != dimStyle.Dimdec)
+                GetOverrides().dimdec = dim.Dimdec;
+            if (Math.Abs(dim.Dimdle - dimStyle.Dimdle) > Tolerance)
+                GetOverrides().dimdle = dim.Dimdle;
+            if (Math.Abs(dim.Dimdli - dimStyle.Dimdli) > Tolerance)
+                GetOverrides().dimdli = dim.Dimdli;
+            if (dim.Dimdsep != dimStyle.Dimdsep)
+                GetOverrides().dimdsep = dim.Dimdsep.ToString();
+            if (Math.Abs(dim.Dimexe - dimStyle.Dimexe) > Tolerance)
+                GetOverrides().dimexe = dim.Dimexe;
+            if (Math.Abs(dim.Dimexo - dimStyle.Dimexo) > Tolerance)
+                GetOverrides().dimexo = dim.Dimexo;
+            if (dim.Dimfrac != dimStyle.Dimfrac)
+                GetOverrides().dimfrac = dim.Dimfrac;
+            if (Math.Abs(dim.Dimfxlen - dimStyle.Dimfxlen) > Tolerance)
+                GetOverrides().dimfxlen = dim.Dimfxlen;
+            if (dim.DimfxlenOn != dimStyle.DimfxlenOn)
+                GetOverrides().dimfxlenOn = dim.DimfxlenOn;
+            if (Math.Abs(dim.Dimgap - dimStyle.Dimgap) > Tolerance)
+                GetOverrides().dimgap = dim.Dimgap;
+            if (Math.Abs(dim.Dimjogang - dimStyle.Dimjogang) > Tolerance)
+                GetOverrides().dimjogang = dim.Dimjogang;
+            if (dim.Dimjust != dimStyle.Dimjust)
+                GetOverrides().dimjust = dim.Dimjust;
+
+            if (dim.Dimldrblk != dimStyle.Dimldrblk &&
+                dim.Dimldrblk.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dim.Dimldrblk, AcDb.OpenMode.ForRead);
+                GetOverrides().dimldrblk = symbol.Name;
+            }
+
+            if (Math.Abs(dim.Dimlfac - dimStyle.Dimlfac) > Tolerance)
+                GetOverrides().dimlfac = dim.Dimlfac;
+            if (dim.Dimlim != dimStyle.Dimlim)
+                GetOverrides().dimlim = dim.Dimlim;
+
+            if (dim.Dimltex1 != dimStyle.Dimltex1 && dim.Dimltex1.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dim.Dimltex1, AcDb.OpenMode.ForRead);
+                GetOverrides().dimltex1 = symbol.Name;
+            }
+
+            if (dim.Dimltex2 != dimStyle.Dimltex2 && dim.Dimltex2.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dim.Dimltex2, AcDb.OpenMode.ForRead);
+                GetOverrides().dimltex2 = symbol.Name;
+            }
+
+            if (dim.Dimltype != dimStyle.Dimltype && dim.Dimltype.IsValid)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dim.Dimltype, AcDb.OpenMode.ForRead);
+                GetOverrides().dimltype = symbol.Name;
+            }
+
+            if (dim.Dimlunit != dimStyle.Dimlunit)
+                GetOverrides().dimlunit = dim.Dimlunit;
+            if (dim.Dimlwd != dimStyle.Dimlwd)
+                GetOverrides().dimlwd = dim.Dimlwd;
+            if (dim.Dimlwe != dimStyle.Dimlwe)
+                GetOverrides().dimlwe = dim.Dimlwe;
+            if (dim.Dimpost != dimStyle.Dimpost)
+                GetOverrides().dimpost = dim.Dimpost;
+            if (Math.Abs(dim.Dimrnd - dimStyle.Dimrnd) > Tolerance)
+                GetOverrides().dimrnd = dim.Dimrnd;
+            if (dim.Dimsah != dimStyle.Dimsah)
+                GetOverrides().dimsah = dim.Dimsah;
+            if (Math.Abs(dim.Dimscale - dimStyle.Dimscale) > Tolerance)
+                GetOverrides().dimscale = dim.Dimscale;
+            if (dim.Dimsd1 != dimStyle.Dimsd1)
+                GetOverrides().dimsd1 = dim.Dimsd1;
+            if (dim.Dimsd2 != dimStyle.Dimsd2)
+                GetOverrides().dimsd2 = dim.Dimsd2;
+            if (dim.Dimse1 != dimStyle.Dimse1)
+                GetOverrides().dimse1 = dim.Dimse1;
+            if (dim.Dimse2 != dimStyle.Dimse2)
+                GetOverrides().dimse2 = dim.Dimse2;
+            if (dim.Dimsoxd != dimStyle.Dimsoxd)
+                GetOverrides().dimsoxd = dim.Dimsoxd;
+            if (dim.Dimtad != dimStyle.Dimtad)
+                GetOverrides().dimtad = dim.Dimtad;
+            if (dim.Dimtdec != dimStyle.Dimtdec)
+                GetOverrides().dimtdec = dim.Dimtdec;
+            if (Math.Abs(dim.Dimtfac - dimStyle.Dimtfac) > Tolerance)
+                GetOverrides().dimtfac = dim.Dimtfac;
+            if (dim.Dimtfill != dimStyle.Dimtfill)
+                GetOverrides().dimtfill = dim.Dimtfill;
+
+            if (dim.Dimtfillclr != dimStyle.Dimtfillclr)
+            {
+                GetOverrides().dimtfillclr = PyWrapper<Color>.Create(
+                    Color.FromArx(dim.Dimtfillclr));
+            }
+
+            if (dim.Dimtih != dimStyle.Dimtih)
+                GetOverrides().dimtih = dim.Dimtih;
+            if (dim.Dimtix != dimStyle.Dimtix)
+                GetOverrides().dimtix = dim.Dimtix;
+            if (Math.Abs(dim.Dimtm - dimStyle.Dimtm) > Tolerance)
+                GetOverrides().dimtm = dim.Dimtm;
+            if (dim.Dimtmove != dimStyle.Dimtmove)
+                GetOverrides().dimtmove = dim.Dimtmove;
+            if (dim.Dimtofl != dimStyle.Dimtofl)
+                GetOverrides().dimtofl = dim.Dimtofl;
+            if (dim.Dimtoh != dimStyle.Dimtoh)
+                GetOverrides().dimtoh = dim.Dimtoh;
+            if (dim.Dimtol != dimStyle.Dimtol)
+                GetOverrides().dimtol = dim.Dimtol;
+            if (dim.Dimtolj != dimStyle.Dimtolj)
+                GetOverrides().dimtolj = dim.Dimtolj;
+            if (Math.Abs(dim.Dimtp - dimStyle.Dimtp) > Tolerance)
+                GetOverrides().dimtp = dim.Dimtp;
+            if (Math.Abs(dim.Dimtsz - dimStyle.Dimtsz) > Tolerance)
+                GetOverrides().dimtsz = dim.Dimtsz;
+            if (Math.Abs(dim.Dimtvp - dimStyle.Dimtvp) > Tolerance)
+                GetOverrides().dimtvp = dim.Dimtvp;
+            if (Math.Abs(dim.Dimtxt - dimStyle.Dimtxt) > Tolerance)
+                GetOverrides().dimtxt = dim.Dimtxt;
+            if (dim.Dimtzin != dimStyle.Dimtzin)
+                GetOverrides().dimtzin = dim.Dimtzin;
+            if (dim.Dimupt != dimStyle.Dimupt)
+                GetOverrides().dimupt = dim.Dimupt;
+            if (dim.Dimzin != dimStyle.Dimzin)
+                GetOverrides().dimzin = dim.Dimzin;
 
             return base.FromArx(obj, db);
         }
@@ -561,10 +560,13 @@ namespace SacadMgd
         }
 
         private const double Tolerance = 1E-6;
+
+        private static readonly AcDb.DimStyleTableRecord DefaultStyle =
+            new AcDb.DimStyleTableRecord();
     }
 
     [PyType(Name = "sacad.acdb.AlignedDimension")]
-    public class AlignedDimension : Dimension
+    public sealed class AlignedDimension : Dimension
     {
         public Vector3d dim_line_point;
         public double? oblique;
@@ -598,7 +600,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.ArcDimension")]
-    public class ArcDimension : Dimension
+    public sealed class ArcDimension : Dimension
     {
         public double? arc_end_param;
         public Vector3d arc_point;
@@ -674,7 +676,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.DiametricDimension")]
-    public class DiametricDimension : Dimension
+    public sealed class DiametricDimension : Dimension
     {
         public Vector3d chord_point;
         public Vector3d far_chord_point;
@@ -706,7 +708,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.LineAngularDimension2")]
-    public class LineAngularDimension2 : Dimension
+    public sealed class LineAngularDimension2 : Dimension
     {
         public Vector3d arc_point;
         public Vector3d x_line1_end;
@@ -745,7 +747,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.Point3AngularDimension")]
-    public class Point3AngularDimension : Dimension
+    public sealed class Point3AngularDimension : Dimension
     {
         public Vector3d arc_point;
         public Vector3d center_point;
@@ -782,7 +784,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.RadialDimension")]
-    public class RadialDimension : Dimension
+    public sealed class RadialDimension : Dimension
     {
         public Vector3d center;
         public Vector3d chord_point;
@@ -813,7 +815,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.RadialDimensionLarge")]
-    public class RadialDimensionLarge : Dimension
+    public sealed class RadialDimensionLarge : Dimension
     {
         public Vector3d center;
         public Vector3d chord_point;
@@ -851,7 +853,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.RotatedDimension")]
-    public class RotatedDimension : Dimension
+    public sealed class RotatedDimension : Dimension
     {
         public Vector3d dim_line_point;
         public double? oblique;

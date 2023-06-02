@@ -112,11 +112,11 @@ class Vector2d(_VectorBase):
     def __matmul__(self, other: 'Vector2d') -> float:
         return self.x * other.y - other.x * self.y
 
-    def rotate(self, angle) -> 'Vector2d':
-        return self.rotater(angle * math.pi / 180.0)
+    def rotate(self, degrees) -> 'Vector2d':
+        return self.rotater(math.radians(degrees))
 
-    def rotater(self, radian) -> 'Vector2d':
-        cosa, sina = math.cos(radian), math.sin(radian)
+    def rotater(self, radians) -> 'Vector2d':
+        cosa, sina = math.cos(radians), math.sin(radians)
         return Vector2d(self.x * cosa - self.y * sina,
                         self.x * sina + self.y * cosa)
 
@@ -133,11 +133,11 @@ class Vector3d(_VectorBase):
             self.x * other.y - self.y * other.x
         )
 
-    def rotate(self, angle: Number, axis: 'Vector3d') -> 'Vector3d':
-        return self.rotater(angle * math.pi / 180.0, axis)
+    def rotate(self, degrees: Number, axis: 'Vector3d') -> 'Vector3d':
+        return self.rotater(math.radians(degrees), axis)
 
-    def rotater(self, radian: Number, axis: 'Vector3d') -> 'Vector3d':
-        cosa, sina = math.cos(radian), math.sin(radian)
+    def rotater(self, radians: Number, axis: 'Vector3d') -> 'Vector3d':
+        cosa, sina = math.cos(radians), math.sin(radians)
         if axis == self.xaxis():
             return Vector3d(self.x,
                             self.y * cosa - self.z * sina,
@@ -173,8 +173,83 @@ class Matrix3d(np.ndarray, Jsonify):
     def __new__(cls, *args, **kwargs):
         return super().__new__(cls, shape=(4, 4), buffer=(
             args[0] if isinstance(args[0], np.ndarray)
-            else np.array(args, dtype=float)
-        ))
+            else np.array(args, dtype=float)))
 
     def _jsonify_traverse_dict(self, self_dict):
         return list(self.flat)
+
+    @staticmethod
+    def identity() -> 'Matrix3d':
+        return Matrix3d(np.identity(4))
+
+    def move(self,
+             offset_x: Number = 0,
+             offset_y: Number = 0,
+             offset_z: Number = 0) -> 'Matrix3d':
+        transfer = Matrix3d(np.array((
+            1, 0, 0, offset_x,
+            0, 1, 0, offset_y,
+            0, 0, 1, offset_z,
+            0, 0, 0, 1,
+        ), dtype=float))
+        return Matrix3d(np.dot(transfer, self))
+
+    def rotate(self, degrees: Number, axis: Vector3d = Vector3d.zaxis()):
+        return self.rotater(math.radians(degrees), axis)
+
+    def rotater(self, radians: Number, axis: Vector3d = Vector3d.zaxis()):
+        cosa, sina = math.cos(radians), math.sin(radians)
+        if axis == Vector3d.xaxis():
+            rotation = Matrix3d(np.array((
+                1, 0, 0, 0,
+                0, cosa, -sina, 0,
+                0, sina, cosa, 0,
+                0, 0, 0, 1,
+            ), dtype=float))
+        elif axis == Vector3d.yaxis():
+            rotation = Matrix3d(np.array((
+                cosa, 0, sina, 0,
+                0, 1, 0, 0,
+                -sina, 0, cosa, 0,
+                0, 0, 0, 1,
+            ), dtype=float))
+        elif axis == Vector3d.zaxis():
+            rotation = Matrix3d(np.array((
+                cosa, -sina, 0, 0,
+                sina, cosa, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1,
+            ), dtype=float))
+        else:
+            norm = axis / abs(axis)
+            one_cosa = 1 - cosa
+            rotation = Matrix3d(np.array((
+                # row 0
+                norm.x * norm.x * one_cosa + cosa,
+                norm.x * norm.y * one_cosa - norm.z * sina,
+                norm.x * norm.z * one_cosa + norm.y * sina,
+                0,
+                # row 1
+                norm.x * norm.y * one_cosa + norm.z * sina,
+                norm.y * norm.y * one_cosa + cosa,
+                norm.y * norm.z * one_cosa - norm.x * sina,
+                0,
+                # row 2
+                norm.x * norm.z * one_cosa - norm.y * sina,
+                norm.y * norm.z * one_cosa + norm.x * sina,
+                norm.z * norm.z * one_cosa + cosa,
+                0,
+                # row 3
+                0, 0, 0, 1,
+            ), dtype=float))
+        return Matrix3d(np.dot(rotation, self))
+
+    def scale(self, linear_factor: Number, mirror_x: bool = False,
+              mirror_y: bool = False, mirror_z: bool = False):
+        scale = Matrix3d(np.array((
+            linear_factor * (-1 if mirror_x else 1), 0, 0, 0,
+            0, linear_factor * (-1 if mirror_y else 1), 0, 0,
+            0, 0, linear_factor * (-1 if mirror_z else 1), 0,
+            0, 0, 0, 1,
+        ), dtype=float))
+        return Matrix3d(np.dot(scale, self))

@@ -58,6 +58,7 @@ namespace SacadMgd
         public double? linetype_scale;
         public AcDb.LineWeight? line_weight;
         public bool? visible;
+        public Matrix3d matrix;
 
         // TODO GeometricExtents
 
@@ -79,14 +80,14 @@ namespace SacadMgd
 
             if (layer != null && db.GetLayer(layer) != null)
                 entity.Layer = layer;
-
             if (linetype != null && db.GetLinetype(linetype) != null)
                 entity.Linetype = linetype;
-
             if (linetype_scale.HasValue)
                 entity.LinetypeScale = linetype_scale.Value;
             if (line_weight.HasValue) entity.LineWeight = line_weight.Value;
             if (visible.HasValue) entity.Visible = visible.Value;
+
+            if (matrix != null) entity.TransformBy(matrix.ToMatrix3d());
 
             return base.ToArx(obj, db);
         }
@@ -109,7 +110,7 @@ namespace SacadMgd
     }
 
     [PyType(Name = "sacad.acdb.DBText")]
-    public class DBText : Entity
+    public sealed class DBText : Entity
     {
         public Vector3d alignment_point;
         public double? height;
