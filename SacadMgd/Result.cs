@@ -35,4 +35,10 @@ namespace SacadMgd
         public int num_updated;
         public int num_failure;
     }
+
+    [PyType(Name = "sacad.result.DBSelectResult")]
+    public sealed class DbSelectResult : Result
+    {
+        public PyWrapper<Database> db;
+    }
 }

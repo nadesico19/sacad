@@ -139,7 +139,7 @@ namespace SacadMgd
                 }
                 catch (Exception ex)
                 {
-                    WriteLog(db,
+                    Util.ConsoleWriteLine(
                         $"{symbol.__cls__} insertion failed: {ex.Message}");
                     result.num_failure++;
                 }
@@ -200,7 +200,7 @@ namespace SacadMgd
                 }
                 catch (Exception ex)
                 {
-                    WriteLog(db,
+                    Util.ConsoleWriteLine(
                         $"{entity.__cls__} insertion failed: {ex.Message}");
                     result.num_failure++;
                 }
@@ -232,14 +232,152 @@ namespace SacadMgd
 
             doc.Editor.SetCurrentView(view);
         }
+    }
 
-        private void WriteLog(AcDb.Database db, string message)
+    public sealed class DbSelectQuery : DbQuery
+    {
+        public Mode? mode;
+        public int? table_flags;
+
+        public override Result Execute()
         {
-            // ReSharper disable once AccessToStaticMemberViaDerivedType
-            var doc = AcAp.Application.DocumentManager.MdiActiveDocument;
-            if (doc.Database != db) return;
+            var result = new DbSelectResult
+            {
+                db = PyWrapper<Database>.Create(new Database())
+            };
 
-            doc.Editor.WriteMessage($"\n{message}");
+            var db = AcDb.HostApplicationServices.WorkingDatabase;
+            try
+            {
+                using (db.TransactionManager.StartTransaction())
+                {
+                    switch (mode)
+                    {
+                        case Mode.GetTables:
+                            GetTable(db, result);
+                            break;
+                        case Mode.GetUserSelection:
+                            GetUserSelection(db, result);
+                            break;
+                        case Mode.TestEntities:
+                            TestEntities(db, result);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    if (result.status == Status.Unknown)
+                        result.status = Status.Success;
+                }
+            }
+            catch (Exception ex)
+            {
+                Util.ConsoleWriteLine(ex);
+                result.message = $"Unhandled exception: {ex.Message}";
+            }
+
+            return result;
+        }
+
+        private void GetTable(AcDb.Database db, DbSelectResult result)
+        {
+            result.db = result.db ?? PyWrapper<Database>.Create(new Database());
+
+            if ((table_flags & (int)TableFlags.ModelSpace) != 0)
+            {
+                result.db.__mbr__.block_table =
+                    result.db.__mbr__.block_table ??
+                    new Dictionary<string, PyWrapper<BlockTableRecord>>();
+            }
+
+            if ((table_flags & (int)TableFlags.TextStyle) != 0)
+            {
+                result.db.__mbr__.text_style_table =
+                    result.db.__mbr__.text_style_table ??
+                    new Dictionary<string, PyWrapper<TextStyleTableRecord>>();
+
+                SelectSymbols(db, db.TextStyleTableId,
+                    result.db.__mbr__.text_style_table);
+            }
+
+            if ((table_flags & (int)TableFlags.Linetype) != 0)
+            {
+                result.db.__mbr__.linetype_table =
+                    result.db.__mbr__.linetype_table ??
+                    new Dictionary<string, PyWrapper<LinetypeTableRecord>>();
+
+                SelectSymbols(db, db.LinetypeTableId,
+                    result.db.__mbr__.linetype_table);
+            }
+
+            if ((table_flags & (int)TableFlags.Layer) != 0)
+            {
+                result.db.__mbr__.layer_table =
+                    result.db.__mbr__.layer_table ??
+                    new Dictionary<string, PyWrapper<LayerTableRecord>>();
+
+                SelectSymbols(db, db.LayerTableId,
+                    result.db.__mbr__.layer_table);
+            }
+
+            if ((table_flags & (int)TableFlags.DimStyle) != 0)
+            {
+                result.db.__mbr__.dim_style_table =
+                    result.db.__mbr__.dim_style_table ??
+                    new Dictionary<string, PyWrapper<DimStyleTableRecord>>();
+
+                SelectSymbols(db, db.DimStyleTableId,
+                    result.db.__mbr__.dim_style_table);
+            }
+        }
+
+        private void TestEntities(AcDb.Database db, DbSelectResult result)
+        {
+            // TODO
+        }
+
+        private void GetUserSelection(AcDb.Database db, DbSelectResult result)
+        {
+            // TODO
+        }
+
+        private static void SelectSymbols<TRecord>(
+            AcDb.Database db, AcDb.ObjectId tableId,
+            IDictionary<string, PyWrapper<TRecord>> table)
+            where TRecord : SymbolTableRecord, new()
+        {
+            var trans = db.TransactionManager.TopTransaction;
+
+            var arxTable = (AcDb.SymbolTable)trans.GetObject(tableId,
+                AcDb.OpenMode.ForRead);
+            foreach (var id in arxTable)
+            {
+                if (!id.IsValid) continue;
+
+                var arxSym = (AcDb.SymbolTableRecord)trans.GetObject(id,
+                    AcDb.OpenMode.ForRead);
+
+                var sym = new TRecord();
+                sym.FromArx(arxSym, db);
+
+                table[arxSym.Name] = PyWrapper<TRecord>.Create(sym);
+            }
+        }
+
+        public enum Mode
+        {
+            GetTables,
+            GetUserSelection,
+            TestEntities,
+        }
+
+        private enum TableFlags
+        {
+            ModelSpace = 0x01,
+            TextStyle = 0x02,
+            Linetype = 0x04,
+            Layer = 0x08,
+            DimStyle = 0x10,
         }
     }
 }

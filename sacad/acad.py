@@ -18,6 +18,9 @@ from sacad.constant import ACAD_LATEST
 from sacad.crud import (
     DBInsert,
     DBInsertQuery,
+    DBSelect,
+    DBSelectQuery,
+    SelectMode,
 )
 from sacad.env import available_acad
 from sacad.session import Session
@@ -96,6 +99,18 @@ class Acad:
         :param kwargs: parameters of DBInsertQuery.__init__.
         """
         return DBInsert(self._session, DBInsertQuery(**kwargs))
+
+    def db_get_tables(self, table_flags: int, **kwargs) -> DBSelect:
+        return DBSelect(self._session, DBSelectQuery(
+            mode=SelectMode.GET_TABLES, table_flags=table_flags, **kwargs))
+
+    def db_get_user_selection(self, **kwargs) -> DBSelect:
+        return DBSelect(self._session, DBSelectQuery(
+            mode=SelectMode.GET_USER_SELECTION, **kwargs))
+
+    def db_test_entities(self, **kwargs) -> DBSelect:
+        return DBSelect(self._session, DBSelectQuery(
+            mode=SelectMode.TEST_ENTITIES, **kwargs))
 
     @staticmethod
     def get_available() -> List[str]:

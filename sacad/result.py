@@ -11,12 +11,15 @@
 
 from dataclasses import dataclass
 from enum import IntEnum
+from typing import Optional
 
+from sacad.acdb import Database
 from sacad.jsonify import Jsonify
 
 __all__ = [
     'Result',
     'DBInsertResult',
+    'DBSelectResult',
 ]
 
 
@@ -30,7 +33,7 @@ class Status(IntEnum):
 @dataclass
 class Result(Jsonify):
     status: Status = Status.UNKNOWN
-    message: str = None
+    message: Optional[str] = None
 
 
 @dataclass
@@ -38,3 +41,8 @@ class DBInsertResult(Result):
     num_inserted: int = 0
     num_updated: int = 0
     num_failure: int = 0
+
+
+@dataclass
+class DBSelectResult(Result):
+    db: Optional[Database] = None

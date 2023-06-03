@@ -39,6 +39,15 @@ class _VectorBase(tuple, Jsonify):
         setattr(cls, '_yaxis', cls(0, 1, 0))
         setattr(cls, '_zaxis', cls(0, 0, 1))
 
+    def transform_by(self, matrix: 'Matrix3d'):
+        v = np.array((0, 0, 0, 1), dtype=float)
+        if isinstance(self, Vector2d):
+            v[:2] = self
+        elif isinstance(self, Vector3d):
+            v[:3] = self
+        v = np.dot(matrix, v)
+        return self.__class__(*v[:3])
+
     def _jsonify_traverse_dict(self, self_dict):
         if isinstance(self, Vector2d):
             return [self.x, self.y]

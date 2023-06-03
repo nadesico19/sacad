@@ -12,7 +12,7 @@
 from dataclasses import dataclass, field
 from enum import IntEnum
 from functools import cached_property
-from typing import List, Dict, Iterable
+from typing import List, Dict, Iterable, Optional
 
 from sacad.acdb import (
     Database,
@@ -25,20 +25,20 @@ from sacad.error import AcadTcpError
 from sacad.jsonify import Jsonify
 from sacad.result import (
     DBInsertResult,
+    DBSelectResult,
 )
 from sacad.session import Session
 from sacad.util import csharp_polymorphic_type
 
 __all__ = [
+    'ZoomMode',
+    'SelectMode',
+    'TableFlags',
     'DBInsert',
     'DBInsertQuery',
-    'ZoomMode',
+    'DBSelect',
+    'DBSelectQuery',
 ]
-
-
-@dataclass
-class DBQuery(Jsonify):
-    database: Database = field(default_factory=Database)
 
 
 class ZoomMode(IntEnum):
@@ -47,13 +47,37 @@ class ZoomMode(IntEnum):
     ALL = 2
 
 
+class SelectMode(IntEnum):
+    GET_TABLES = 0
+    GET_USER_SELECTION = 1
+    TEST_ENTITIES = 2
+
+
+class TableFlags(IntEnum):
+    MODEL_SPACE = 0x01
+    TEXT_STYLE = 0x02
+    LINETYPE = 0x04
+    LAYER = 0x08
+
+
+@dataclass
+class DBQuery(Jsonify):
+    database: Database = field(default_factory=Database)
+
+
 @dataclass
 class DBInsertQuery(DBQuery):
-    insertion_point: Vector3d = None
-    prompt_insertion_point: bool = None
-    upsert: bool = None
-    zoom_mode: ZoomMode = None
-    zoom_factor: float = None
+    insertion_point: Optional[Vector3d] = None
+    prompt_insertion_point: Optional[bool] = None
+    upsert: Optional[bool] = None
+    zoom_mode: Optional[ZoomMode] = None
+    zoom_factor: Optional[float] = None
+
+
+@dataclass
+class DBSelectQuery(DBQuery):
+    mode: Optional[SelectMode] = None
+    table_flags: Optional[int] = None
 
 
 class DBOperator:
@@ -83,23 +107,23 @@ class DBInsert(DBOperator):
 
     @cached_property
     def model_space(self) -> 'ListInsertProxy':
-        return ListInsertProxy(self, self._db.get_block(MODEL_SPACE).entities)
+        return ListInsertProxy(self._db.get_block(MODEL_SPACE).entities)
 
     @cached_property
     def dim_style_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self, self._db.dim_style_table)
+        return DictInsertProxy(self._db.dim_style_table)
 
     @cached_property
     def layer_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self, self._db.layer_table)
+        return DictInsertProxy(self._db.layer_table)
 
     @cached_property
     def linetype_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self, self._db.linetype_table)
+        return DictInsertProxy(self._db.linetype_table)
 
     @cached_property
     def text_style_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self, self._db.text_style_table)
+        return DictInsertProxy(self._db.text_style_table)
 
     def submit(self):
         request = self._query.serialize()
@@ -107,9 +131,23 @@ class DBInsert(DBOperator):
         return DBInsertResult.deserialize(response)
 
 
+class DBSelect(DBOperator):
+    def __init__(self, session: Session, query: DBSelectQuery):
+        super().__init__(session, query.database)
+        self._query = query
+
+    @cached_property
+    def tested_entities(self) -> 'ListInsertProxy':
+        return ListInsertProxy(self._db.get_block(MODEL_SPACE).entities)
+
+    def submit(self) -> DBSelectResult:
+        request = self._query.serialize()
+        response = self._sumbit(request)
+        return DBSelectResult.deserialize(response)
+
+
 class ListInsertProxy:
-    def __init__(self, inserter: DBInsert, objects: List[DBObject]):
-        self._ins = inserter
+    def __init__(self, objects: List[DBObject]):
         self._lst = objects
 
     def insert(self, dbobj: DBObject):
@@ -125,8 +163,7 @@ class ListInsertProxy:
 
 
 class DictInsertProxy:
-    def __init__(self, inserter: DBInsert, objects: Dict[str, DBObject]):
-        self._ins = inserter
+    def __init__(self, objects: Dict[str, DBObject]):
         self._dic = objects
 
     def insert(self, dbobj: DBObject):
@@ -147,3 +184,5 @@ class DictInsertProxy:
 
 DBInsertQuery = csharp_polymorphic_type("SacadMgd.DbInsertQuery, SacadMgd")(
     DBInsertQuery)
+DBSelectQuery = csharp_polymorphic_type("SacadMgd.DbSelectQuery, SacadMgd")(
+    DBSelectQuery)
