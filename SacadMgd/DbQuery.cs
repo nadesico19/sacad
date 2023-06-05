@@ -238,6 +238,7 @@ namespace SacadMgd
     {
         public Mode? mode;
         public int? table_flags;
+        public bool? explode_blocks;
 
         public override Result Execute()
         {
@@ -338,7 +339,53 @@ namespace SacadMgd
 
         private void GetUserSelection(AcDb.Database db, DbSelectResult result)
         {
-            // TODO
+            var trans = db.TransactionManager.TopTransaction;
+
+            // ReSharper disable once AccessToStaticMemberViaDerivedType
+            var editor = AcAp.Application.DocumentManager.MdiActiveDocument
+                .Editor;
+
+            var selected = editor.SelectImplied();
+            if (selected.Status != AcEi.PromptStatus.OK)
+            {
+                result.status = Status.Failure;
+                result.message = "None of entities is selected.";
+
+                return;
+            }
+
+            var modelSpace = result.db.__mbr__.GetModelSpace();
+
+            using (var exploded = new AcDb.DBObjectCollection())
+            {
+                foreach (var id in selected.Value.GetObjectIds())
+                {
+                    if (!id.IsValid) continue;
+
+                    var arxEntity =
+                        (AcDb.Entity)trans.GetObject(id, AcDb.OpenMode.ForRead);
+
+                    if (arxEntity is AcDb.BlockReference &&
+                        explode_blocks == true)
+                    {
+                        arxEntity.Explode(exploded);
+                        continue;
+                    }
+
+                    var entity = Entity.Convert(arxEntity, db);
+                    if (entity == null) continue;
+
+                    modelSpace.entities.Add(PyWrapper<Entity>.Create(entity));
+                }
+
+                foreach (AcDb.Entity arxEntity in exploded)
+                {
+                    var entity = Entity.Convert(arxEntity, db);
+                    if (entity == null) continue;
+
+                    modelSpace.entities.Add(PyWrapper<Entity>.Create(entity));
+                }
+            }
         }
 
         private static void SelectSymbols<TRecord>(

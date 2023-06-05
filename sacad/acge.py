@@ -14,9 +14,9 @@
 import math
 import operator as op
 
-import numpy as np
-
 from typing import Type, Union
+
+import numpy as np
 
 from sacad.jsonify import Jsonify
 

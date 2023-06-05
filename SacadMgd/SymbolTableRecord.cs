@@ -19,7 +19,7 @@ using AcGi = Autodesk.AutoCAD.GraphicsInterface;
 
 namespace SacadMgd
 {
-    [PyType(Name = "sacad.acdb.SymbolTableRecord")]
+    [PyType("sacad.acdb.SymbolTableRecord")]
     public class SymbolTableRecord : DBObject
     {
         public string name;
@@ -53,7 +53,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.BlockTableRecord")]
+    [PyType("sacad.acdb.BlockTableRecord")]
     public sealed class BlockTableRecord : SymbolTableRecord
     {
         public List<PyWrapper<Entity>> entities;
@@ -61,7 +61,7 @@ namespace SacadMgd
         // TODO override
     }
 
-    [PyType(Name = "sacad.acdb.DimStyleTableRecord")]
+    [PyType("sacad.acdb.DimStyleTableRecord")]
     public sealed class DimStyleTableRecord : SymbolTableRecord
     {
         public int? dimadec;
@@ -410,7 +410,7 @@ namespace SacadMgd
             db.AddDimStyle((AcDb.DimStyleTableRecord)symbol);
     }
 
-    [PyType(Name = "sacad.acdb.LayerTableRecord")]
+    [PyType("sacad.acdb.LayerTableRecord")]
     public sealed class LayerTableRecord : SymbolTableRecord
     {
         public PyWrapper<Color> color;
@@ -470,7 +470,7 @@ namespace SacadMgd
             db.AddLayer((AcDb.LayerTableRecord)symbol);
     }
 
-    [PyType(Name = "sacad.acdb.LinetypeSegment")]
+    [PyType("sacad.acdb.LinetypeSegment")]
     public sealed class LinetypeSegment
     {
         public double? dash_length;
@@ -483,7 +483,7 @@ namespace SacadMgd
         public string text;
     }
 
-    [PyType(Name = "sacad.acdb.LayerTableRecord")]
+    [PyType("sacad.acdb.LayerTableRecord")]
     public sealed class LinetypeTableRecord : SymbolTableRecord
     {
         public string comments;
@@ -608,7 +608,7 @@ namespace SacadMgd
             db.AddLineype((AcDb.LinetypeTableRecord)symbol);
     }
 
-    [PyType(Name = "sacad.acdb.FontDescriptor")]
+    [PyType("sacad.acdb.FontDescriptor")]
     public sealed class FontDescriptor
     {
         public bool? bold;
@@ -618,7 +618,7 @@ namespace SacadMgd
         public string type_face;
     }
 
-    [PyType(Name = "sacad.acdb.TextStyleTableRecord")]
+    [PyType("sacad.acdb.TextStyleTableRecord")]
     public sealed class TextStyleTableRecord : SymbolTableRecord
     {
         public string big_font_file_name;

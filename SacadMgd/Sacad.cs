@@ -31,6 +31,8 @@ namespace SacadMgd
         public void Initialize()
         {
             _connKeeper = new Dictionary<string, TcpClient>();
+
+            Entity.RegisterALl();
             Python.RegisterAll();
         }
 
@@ -38,7 +40,7 @@ namespace SacadMgd
         {
         }
 
-        [AcRt.CommandMethod("SACAD_CONNECT")]
+        [AcRt.CommandMethod("SACAD_CONNECT", AcRt.CommandFlags.Redraw)]
         public static void ConnectCommand()
         {
             try
@@ -60,7 +62,7 @@ namespace SacadMgd
             }
         }
 
-        [AcRt.CommandMethod("SACAD_PING")]
+        [AcRt.CommandMethod("SACAD_PING", AcRt.CommandFlags.Redraw)]
         public static void PingCommand()
         {
             try
@@ -81,14 +83,16 @@ namespace SacadMgd
             }
         }
 
-        [AcRt.CommandMethod("SACAD_DOCOP", AcRt.CommandFlags.Session)]
+        [AcRt.CommandMethod("SACAD_DOCOP",
+            AcRt.CommandFlags.Session | AcRt.CommandFlags.Redraw)]
         public static void DocOperationCommand()
         {
             DoOperationCommand("doc operation", message => new Result());
             // TODO
         }
 
-        [AcRt.CommandMethod("SACAD_DBOP", AcRt.CommandFlags.DocExclusiveLock)]
+        [AcRt.CommandMethod("SACAD_DBOP",
+            AcRt.CommandFlags.DocExclusiveLock | AcRt.CommandFlags.Redraw)]
         public static void DbOperationCommand()
         {
             DoOperationCommand("db operation", message =>

@@ -78,6 +78,7 @@ class DBInsertQuery(DBQuery):
 class DBSelectQuery(DBQuery):
     mode: Optional[SelectMode] = None
     table_flags: Optional[int] = None
+    explode_blocks: Optional[bool] = None
 
 
 class DBOperator:

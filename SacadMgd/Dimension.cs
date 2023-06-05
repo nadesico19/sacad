@@ -16,7 +16,7 @@ using AcDb = Autodesk.AutoCAD.DatabaseServices;
 
 namespace SacadMgd
 {
-    [PyType(Name = "sacad.acdb.Dimension")]
+    [PyType("sacad.acdb.Dimension")]
     public class Dimension : Entity
     {
         public PyWrapper<DimStyleTableRecord> override_style;
@@ -565,7 +565,7 @@ namespace SacadMgd
             new AcDb.DimStyleTableRecord();
     }
 
-    [PyType(Name = "sacad.acdb.AlignedDimension")]
+    [PyType("sacad.acdb.AlignedDimension")]
     public sealed class AlignedDimension : Dimension
     {
         public Vector3d dim_line_point;
@@ -599,7 +599,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.ArcDimension")]
+    [PyType("sacad.acdb.ArcDimension")]
     public sealed class ArcDimension : Dimension
     {
         public double? arc_end_param;
@@ -675,7 +675,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.DiametricDimension")]
+    [PyType("sacad.acdb.DiametricDimension")]
     public sealed class DiametricDimension : Dimension
     {
         public Vector3d chord_point;
@@ -707,7 +707,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.LineAngularDimension2")]
+    [PyType("sacad.acdb.LineAngularDimension2")]
     public sealed class LineAngularDimension2 : Dimension
     {
         public Vector3d arc_point;
@@ -746,7 +746,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.Point3AngularDimension")]
+    [PyType("sacad.acdb.Point3AngularDimension")]
     public sealed class Point3AngularDimension : Dimension
     {
         public Vector3d arc_point;
@@ -783,7 +783,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.RadialDimension")]
+    [PyType("sacad.acdb.RadialDimension")]
     public sealed class RadialDimension : Dimension
     {
         public Vector3d center;
@@ -814,7 +814,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.RadialDimensionLarge")]
+    [PyType("sacad.acdb.RadialDimensionLarge")]
     public sealed class RadialDimensionLarge : Dimension
     {
         public Vector3d center;
@@ -852,7 +852,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.RotatedDimension")]
+    [PyType("sacad.acdb.RotatedDimension")]
     public sealed class RotatedDimension : Dimension
     {
         public Vector3d dim_line_point;

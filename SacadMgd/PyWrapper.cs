@@ -45,17 +45,23 @@ namespace SacadMgd
         internal static void RegisterAll()
         {
             var asm = Assembly.GetExecutingAssembly();
-            foreach (var pyType in asm.GetTypes()
-                         .Where(t => t.GetCustomAttribute<PyType>() != null))
+            foreach (var pyType in asm.GetTypes().Where(t =>
+                         t.GetCustomAttribute<PyTypeAttribute>() != null))
             {
-                PyTypes[pyType] = pyType.GetCustomAttribute<PyType>().Name;
+                PyTypes[pyType] =
+                    pyType.GetCustomAttribute<PyTypeAttribute>().Name;
             }
         }
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class PyType : Attribute
+    public sealed class PyTypeAttribute : Attribute
     {
-        public string Name { get; set; }
+        public readonly string Name;
+
+        public PyTypeAttribute(string name)
+        {
+            Name = name;
+        }
     }
 }

@@ -21,14 +21,14 @@ namespace SacadMgd
         Warning,
     }
 
-    [PyType(Name = "sacad.result.Result")]
+    [PyType("sacad.result.Result")]
     public class Result
     {
         public Status status;
         public string message;
     }
 
-    [PyType(Name = "sacad.result.DBInsertResult")]
+    [PyType("sacad.result.DBInsertResult")]
     public sealed class DbInsertResult : Result
     {
         public int num_inserted;
@@ -36,7 +36,7 @@ namespace SacadMgd
         public int num_failure;
     }
 
-    [PyType(Name = "sacad.result.DBSelectResult")]
+    [PyType("sacad.result.DBSelectResult")]
     public sealed class DbSelectResult : Result
     {
         public PyWrapper<Database> db;

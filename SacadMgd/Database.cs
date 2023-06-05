@@ -9,31 +9,59 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 
 // ReSharper disable InconsistentNaming
 
 namespace SacadMgd
 {
-    [PyType(Name = "sacad.acdb.Database")]
+    using BlockTable = Dictionary<string, PyWrapper<BlockTableRecord>>;
+    using DimStyleTable = Dictionary<string, PyWrapper<DimStyleTableRecord>>;
+    using LayerTable = Dictionary<string, PyWrapper<LayerTableRecord>>;
+    using LinetypeTable = Dictionary<string, PyWrapper<LinetypeTableRecord>>;
+    using TextStyleTable = Dictionary<string, PyWrapper<TextStyleTableRecord>>;
+
+    [PyType("sacad.acdb.Database")]
     public sealed class Database
     {
-        public Dictionary<string, PyWrapper<BlockTableRecord>> block_table;
+        public BlockTable block_table;
+        public DimStyleTable dim_style_table;
+        public LayerTable layer_table;
+        public LinetypeTable linetype_table;
+        public TextStyleTable text_style_table;
 
-        public Dictionary<string, PyWrapper<DimStyleTableRecord>>
-            dim_style_table;
+        public BlockTable GetBlockTable() => Ensure(ref block_table);
+        public DimStyleTable GetDimStyleTable() => Ensure(ref dim_style_table);
+        public LayerTable GetLayerTable() => Ensure(ref layer_table);
+        public LinetypeTable GetLinetypeTable() => Ensure(ref linetype_table);
 
-        public Dictionary<string, PyWrapper<LayerTableRecord>> layer_table;
+        public TextStyleTable GetTextStyleTable() =>
+            Ensure(ref text_style_table);
 
-        public Dictionary<string, PyWrapper<LinetypeTableRecord>>
-            linetype_table;
+        public BlockTableRecord GetBlockTableRecord(string name)
+        {
+            if (!GetBlockTable().ContainsKey(name))
+            {
+                block_table[name] = PyWrapper<BlockTableRecord>
+                    .Create(new BlockTableRecord
+                        { entities = new List<PyWrapper<Entity>>() });
+            }
 
-        public Dictionary<string, PyWrapper<TextStyleTableRecord>>
-            text_style_table;
+            return block_table[name].__mbr__;
+        }
+
+        public BlockTableRecord GetModelSpace() =>
+            GetBlockTableRecord("*MODEL_SPACE");
+
+        private static T Ensure<T>(ref T table) where T : class, new() =>
+            table ?? (table = new T());
     }
 
-    [PyType(Name = "sacad.acdb.DBObject")]
+    [PyType("sacad.acdb.DBObject")]
     public class DBObject
     {
         public long? id;
@@ -48,19 +76,18 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.Entity")]
+    [PyType("sacad.acdb.Entity")]
     public class Entity : DBObject
     {
         public PyWrapper<Color> color;
         public int? color_index;
+        public PyWrapper<Extents3d> geometric_extents;
         public string layer;
         public string linetype;
         public double? linetype_scale;
         public AcDb.LineWeight? line_weight;
         public bool? visible;
         public Matrix3d matrix;
-
-        // TODO GeometricExtents
 
         protected static T New<T>(AcDb.Database db) where T : AcDb.Entity, new()
         {
@@ -99,6 +126,13 @@ namespace SacadMgd
             if (entity.Color != null)
                 color = PyWrapper<Color>.Create(Color.FromArx(entity.Color));
             color_index = entity.ColorIndex;
+
+            if (entity.Bounds.HasValue)
+            {
+                geometric_extents =
+                    PyWrapper<Extents3d>.Create(entity.GeometricExtents);
+            }
+
             layer = entity.Layer;
             linetype = entity.Linetype;
             linetype_scale = entity.LinetypeScale;
@@ -107,9 +141,44 @@ namespace SacadMgd
 
             return base.FromArx(obj, db);
         }
+
+        public static Entity Convert(AcDb.Entity arxEntity, AcDb.Database db)
+        {
+            Type type;
+            return ArxTypes.TryGetValue(arxEntity.GetType(), out type)
+                ? (Activator.CreateInstance(type) as Entity)?.FromArx(
+                    arxEntity, db) as Entity
+                : null;
+        }
+
+        internal static void RegisterALl()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            foreach (var entType in asm.GetTypes().Where(t =>
+                         t.GetCustomAttribute<ArxEntityAttribute>() != null))
+            {
+                ArxTypes[entType.GetCustomAttribute<ArxEntityAttribute>()
+                    .ArxType] = entType;
+            }
+        }
+
+        private static readonly Dictionary<Type, Type> ArxTypes =
+            new Dictionary<Type, Type>();
     }
 
-    [PyType(Name = "sacad.acdb.DBText")]
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class ArxEntityAttribute : Attribute
+    {
+        public readonly Type ArxType;
+
+        public ArxEntityAttribute(Type arxType)
+        {
+            ArxType = arxType;
+        }
+    }
+
+    [ArxEntity(typeof(AcDb.DBText))]
+    [PyType("sacad.acdb.DBText")]
     public sealed class DBText : Entity
     {
         public Vector3d alignment_point;
@@ -211,5 +280,16 @@ namespace SacadMgd
 
             return base.FromArx(obj, db);
         }
+    }
+
+    [PyType("sacad.acdb.Extents3d")]
+    public sealed class Extents3d
+    {
+        public Vector3d min_point;
+        public Vector3d max_point;
+
+        public static implicit operator Extents3d(AcDb.Extents3d ext) =>
+            new Extents3d
+                { min_point = ext.MinPoint, max_point = ext.MaxPoint };
     }
 }

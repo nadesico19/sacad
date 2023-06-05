@@ -68,6 +68,7 @@ __all__ = [
     'LinetypeTableRecord',
     'FontDescriptor',
     'TextStyleTableRecord',
+    'Extents3d',
 ]
 
 MODEL_SPACE = '*MODEL_SPACE'
@@ -169,6 +170,7 @@ class DBObject(Jsonify):
 class Entity(DBObject):
     color: Optional[Color] = None
     color_index: Optional[int] = None
+    geometric_extents: Optional['Extents3d'] = None
     layer: Optional[str] = None
     linetype: Optional[str] = None
     linetype_scale: Optional[float] = None
@@ -1895,6 +1897,29 @@ class Database(Jsonify):
         if name not in self.block_table:
             self.block_table[name] = BlockTableRecord()
         return self.block_table[name]
+
+
+@dataclass
+class Extents3d(Jsonify):
+    min_point: Optional[Vector3d]
+    max_point: Optional[Vector3d]
+
+    def is_valid(self) -> bool:
+        min_x = self.min_point.x if self.min_point else math.inf
+        min_y = self.min_point.y if self.min_point else math.inf
+        min_z = self.min_point.z if self.min_point else math.inf
+
+        max_x = self.max_point.x if self.max_point else -math.inf
+        max_y = self.max_point.y if self.max_point else -math.inf
+        max_z = self.max_point.z if self.max_point else -math.inf
+
+        return self._less_equal(min_x, max_x) and \
+            self._less_equal(min_y, max_y) and \
+            self._less_equal(min_z, max_z)
+
+    @staticmethod
+    def _less_equal(min_val, max_val) -> bool:
+        return min_val - max_val < 1E-6
 
 
 # Syntactic sugar of @decorator may somehow break the code completion of IDE

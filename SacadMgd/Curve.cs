@@ -19,12 +19,13 @@ using AcGe = Autodesk.AutoCAD.Geometry;
 
 namespace SacadMgd
 {
-    [PyType(Name = "sacad.acdb.Curve")]
+    [PyType("sacad.acdb.Curve")]
     public class Curve : Entity
     {
     }
 
-    [PyType(Name = "sacad.acdb.Arc")]
+    [ArxEntity(typeof(AcDb.Arc))]
+    [PyType("sacad.acdb.Arc")]
     public sealed class Arc : Curve
     {
         public Vector3d center;
@@ -66,7 +67,8 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.Line")]
+    [ArxEntity(typeof(AcDb.Line))]
+    [PyType("sacad.acdb.Line")]
     public sealed class Line : Curve
     {
         public Vector3d end_point;
@@ -100,7 +102,7 @@ namespace SacadMgd
         }
     }
 
-    [PyType(Name = "sacad.acdb.Vertex")]
+    [PyType("sacad.acdb.Vertex")]
     public sealed class Vertex
     {
         public Vector2d point;
@@ -109,7 +111,8 @@ namespace SacadMgd
         public double? end_width;
     }
 
-    [PyType(Name = "sacad.acdb.Polyline")]
+    [ArxEntity(typeof(AcDb.Polyline))]
+    [PyType("sacad.acdb.Polyline")]
     public sealed class Polyline : Curve
     {
         public bool? closed;
