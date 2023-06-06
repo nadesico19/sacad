@@ -12,7 +12,7 @@
 import json
 
 from enum import IntEnum
-from typing import TypeVar, Union
+from typing import Dict, Set, TypeVar, Union
 
 from sacad.error import JsonifyError
 
@@ -24,7 +24,8 @@ MEMBER_KEY = '__mbr__'
 
 
 class Jsonify:
-    _jsonify_registry = {}
+    _jsonify_registry: Dict[str, T] = {}
+    _excluded_attributes: Set[str] = set()
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -83,16 +84,30 @@ class Jsonify:
         elif isinstance(arg, list):
             return cls(*arg)
         elif isinstance(arg, dict):
+            for excluded in Jsonify._excluded_attributes:
+                arg.pop(excluded, None)
             return cls(**arg)
         else:
             raise JsonifyError(f'Cannot construct {cls!r} with {arg!r}.')
 
     def serialize(self) -> str:
-        return json.dumps(self._jsonify_to_dict())
+        if isinstance(self, (list, tuple, set)):
+            json_dict = list(map(Jsonify._jsonify_to_dict, self))
+        elif isinstance(self, dict):
+            json_dict = {key: Jsonify._jsonify_to_dict(value)
+                         for key, value in self.items()}
+        else:
+            json_dict = self._jsonify_to_dict()
+
+        return json.dumps(json_dict)
 
     @classmethod
     def deserialize(cls: T, json_data: Union[str, bytes, bytearray]) -> T:
         return Jsonify._jsonify_from_jsonobj(json.loads(json_data))
+
+    @staticmethod
+    def register_excluded_attribute(name: str):
+        Jsonify._excluded_attributes.add(name)
 
     class Encoder(json.JSONEncoder):
         def default(self, obj):

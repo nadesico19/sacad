@@ -15,7 +15,7 @@ import math
 
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypeVar
 
 from sacad.accm import Color
 from sacad.acge import Matrix3d, Number, Vector2d, Vector3d
@@ -26,6 +26,7 @@ __all__ = [
     'MODEL_SPACE',
     # 'PAPER_SPACE',
     'ObjectId',
+    'TDBObject',
     'Database',
     'LineWeight',
     'TextHorizontalMode',
@@ -75,6 +76,8 @@ MODEL_SPACE = '*MODEL_SPACE'
 # PAPER_SPACE = '*PAPER_SPACE'
 
 ObjectId = Optional[int]
+
+TDBObject = TypeVar('TDBObject', bound='DBObject')
 
 
 class LineWeight(IntEnum):
@@ -164,6 +167,9 @@ class LineSpacingStyle(IntEnum):
 @dataclass
 class DBObject(Jsonify):
     id: ObjectId = None
+
+    def clone(self: TDBObject) -> TDBObject:
+        return Jsonify.deserialize(self.serialize())
 
 
 @dataclass

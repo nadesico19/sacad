@@ -20,17 +20,21 @@ __all__ = [
     'csharp_polymorphic_type',
 ]
 
+CSHARP_POLYMORPHIC_TYPE_KEY = '$type'
+
 
 def pyobj_from_id(poid: int):
     return ctypes.cast(poid, ctypes.py_object).value
 
 
 def csharp_polymorphic_type(signature: str):
+    Jsonify.register_excluded_attribute(CSHARP_POLYMORPHIC_TYPE_KEY)
+
     def decorator(cls: Type[Jsonify]):
         original = cls._jsonify_traverse_dict
 
         def override(self, self_dict):
-            result = {"$type": signature}
+            result = {CSHARP_POLYMORPHIC_TYPE_KEY: signature}
             result.update(original(self, self_dict))
             return result
 
