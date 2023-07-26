@@ -483,7 +483,7 @@ namespace SacadMgd
         public string text;
     }
 
-    [PyType("sacad.acdb.LayerTableRecord")]
+    [PyType("sacad.acdb.LinetypeTableRecord")]
     public sealed class LinetypeTableRecord : SymbolTableRecord
     {
         public string comments;

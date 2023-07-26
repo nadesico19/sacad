@@ -186,7 +186,7 @@ class Entity(DBObject):
     matrix: Optional[Matrix3d] = None
 
     def transform_by(self, matrix: Matrix3d):
-        self.matrix = matrix if self.matrix is None else matrix * self.matrix
+        self.matrix = matrix if self.matrix is None else matrix @ self.matrix
 
 
 # @dataclass

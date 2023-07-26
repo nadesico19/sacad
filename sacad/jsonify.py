@@ -37,7 +37,7 @@ class Jsonify:
 
     def _jsonify_to_dict(self):
         return {
-            CLASS_KEY: self.__class__._jsonify_classname(),
+            CLASS_KEY : self.__class__._jsonify_classname(),
             MEMBER_KEY: self._jsonify_traverse_dict(self.__dict__)
         }
 
@@ -90,7 +90,7 @@ class Jsonify:
         else:
             raise JsonifyError(f'Cannot construct {cls!r} with {arg!r}.')
 
-    def serialize(self) -> str:
+    def serialize(self, **kwargs) -> str:
         if isinstance(self, (list, tuple, set)):
             json_dict = list(map(Jsonify._jsonify_to_dict, self))
         elif isinstance(self, dict):
@@ -99,7 +99,7 @@ class Jsonify:
         else:
             json_dict = self._jsonify_to_dict()
 
-        return json.dumps(json_dict)
+        return json.dumps(json_dict, **kwargs)
 
     @classmethod
     def deserialize(cls: T, json_data: Union[str, bytes, bytearray]) -> T:

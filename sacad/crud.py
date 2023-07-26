@@ -58,6 +58,7 @@ class TableFlags(IntEnum):
     TEXT_STYLE = 0x02
     LINETYPE = 0x04
     LAYER = 0x08
+    DIM_STYLE = 0x10
 
 
 @dataclass
@@ -82,12 +83,22 @@ class DBSelectQuery(DBQuery):
 
 
 class DBOperator:
-    def __init__(self, session: Session, db: Database):
+    def __init__(self, session: Session, query: DBQuery):
         self._session = session
-        self._db = db
+        self._query = query
 
-    def _sumbit(self, request: str):
+    @property
+    def query(self):
+        return self._query
+
+    def replace_db(self, db: Database) -> Database:
+        tmp, self._query.database = self._query.database, db
+        return tmp
+
+    def _sumbit(self):
         try:
+            request = self._query.serialize()
+
             if not self._session.is_alive():
                 self._session.open()
 
@@ -99,52 +110,44 @@ class DBOperator:
 
 class DBInsert(DBOperator):
     def __init__(self, session: Session, query: DBInsertQuery):
-        super().__init__(session, query.database)
-        self._query = query
-
-    @property
-    def query(self):
-        return self._query
+        super().__init__(session, query)
 
     @cached_property
     def model_space(self) -> 'ListInsertProxy':
-        return ListInsertProxy(self._db.get_block(MODEL_SPACE).entities)
+        return ListInsertProxy(
+            self._query.database.get_block(MODEL_SPACE).entities)
 
     @cached_property
     def dim_style_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self._db.dim_style_table)
+        return DictInsertProxy(self._query.database.dim_style_table)
 
     @cached_property
     def layer_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self._db.layer_table)
+        return DictInsertProxy(self._query.database.layer_table)
 
     @cached_property
     def linetype_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self._db.linetype_table)
+        return DictInsertProxy(self._query.database.linetype_table)
 
     @cached_property
     def text_style_table(self) -> 'DictInsertProxy':
-        return DictInsertProxy(self._db.text_style_table)
+        return DictInsertProxy(self._query.database.text_style_table)
 
-    def submit(self):
-        request = self._query.serialize()
-        response = self._sumbit(request)
-        return DBInsertResult.deserialize(response)
+    def submit(self) -> DBInsertResult:
+        return DBInsertResult.deserialize(self._sumbit())
 
 
 class DBSelect(DBOperator):
     def __init__(self, session: Session, query: DBSelectQuery):
-        super().__init__(session, query.database)
-        self._query = query
+        super().__init__(session, query)
 
     @cached_property
     def tested_entities(self) -> 'ListInsertProxy':
-        return ListInsertProxy(self._db.get_block(MODEL_SPACE).entities)
+        return ListInsertProxy(
+            self._query.database.get_block(MODEL_SPACE).entities)
 
     def submit(self) -> DBSelectResult:
-        request = self._query.serialize()
-        response = self._sumbit(request)
-        return DBSelectResult.deserialize(response)
+        return DBSelectResult.deserialize(self._sumbit())
 
 
 class ListInsertProxy:

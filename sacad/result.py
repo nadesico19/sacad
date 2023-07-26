@@ -18,6 +18,7 @@ from sacad.jsonify import Jsonify
 
 __all__ = [
     'Result',
+    'Status',
     'DBInsertResult',
     'DBSelectResult',
 ]

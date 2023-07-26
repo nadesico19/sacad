@@ -21,6 +21,7 @@ import numpy as np
 from sacad.jsonify import Jsonify
 
 __all__ = [
+    'Vector',
     'Vector2d',
     'Vector3d',
     'Number',
@@ -253,7 +254,7 @@ class Matrix3d(np.ndarray, Jsonify):
             ), dtype=float))
         return Matrix3d(np.dot(rotation, self))
 
-    def scale(self, linear_factor: Number, mirror_x: bool = False,
+    def scale(self, linear_factor: Number = 1, mirror_x: bool = False,
               mirror_y: bool = False, mirror_z: bool = False):
         scale = Matrix3d(np.array((
             linear_factor * (-1 if mirror_x else 1), 0, 0, 0,

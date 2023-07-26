@@ -12,8 +12,9 @@
 """A facade for user code to access features of sacad conveniently ."""
 
 from contextlib import contextmanager
-from typing import ContextManager, List
+from typing import ContextManager, List, Optional
 
+from sacad.acge import Vector3d
 from sacad.constant import ACAD_LATEST
 from sacad.crud import (
     DBInsert,
@@ -92,13 +93,28 @@ class Acad:
         """
         self._session.com_acad.activate()
 
-    def db_insert(self, **kwargs) -> DBInsert:
+    def db_insert(
+            self,
+            insertion_point: Optional[Vector3d] = None,
+            prompt_insertion_point: Optional[bool] = None,
+            upsert: Optional[bool] = None,
+            **kwargs) -> DBInsert:
         """
         Create an insertion type of transaction to be executed in AutoCAD.
 
-        :param kwargs: parameters of DBInsertQuery.__init__.
+        :param insertion_point: the origin of inserted entities in model space.
+        :param prompt_insertion_point:
+                       when True is specified, AutoCAD prompts for user input
+                       of a point, which becomes the insertion point.
+        :param upsert: when styles with same name already exist, True will lead
+                       to updates. Otherwise, only insertion occurs.
+        :param kwargs: other parameters of DBInsertQuery.__init__.
         """
-        return DBInsert(self._session, DBInsertQuery(**kwargs))
+        return DBInsert(self._session, DBInsertQuery(
+            insertion_point=insertion_point,
+            prompt_insertion_point=prompt_insertion_point,
+            upsert=upsert,
+            **kwargs))
 
     def db_get_tables(self, table_flags: int, **kwargs) -> DBSelect:
         return DBSelect(self._session, DBSelectQuery(
@@ -136,7 +152,8 @@ class Acad:
 
 
 @contextmanager
-def instant_acad(netload=True, **kwargs) -> ContextManager[Acad]:
+def instant_acad(netload=True, acad_name=ACAD_LATEST, **kwargs) \
+        -> ContextManager[Acad]:
     """
     Use with statement to create an auto open/close instance of Acad.
 
@@ -148,9 +165,10 @@ def instant_acad(netload=True, **kwargs) -> ContextManager[Acad]:
                     module has been loaded. But the command executing will
                     clear the user's selection set, so cause some operations
                     fail when calling Editor.SelectImplied.
-    :param kwargs: parameters of Acad.__init__
+    :param acad_name: version identifier defined in constant.py.
+    :param kwargs: other parameters of Acad.__init__
     """
-    acad = Acad(**kwargs)
+    acad = Acad(acad_name=acad_name, **kwargs)
     try:
         acad.open(netload=netload)
         yield acad
