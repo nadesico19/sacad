@@ -128,6 +128,11 @@ class Acad:
         return DBSelect(self._session, DBSelectQuery(
             mode=SelectMode.TEST_ENTITIES, **kwargs))
 
+    def send_command(self, name, *args):
+        com = self._session.com_acad
+        cmd = com.buildcmd(name, *map(str, args))
+        com.sendcmd(cmd)
+
     @staticmethod
     def get_available() -> List[str]:
         """

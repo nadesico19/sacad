@@ -456,7 +456,7 @@ namespace SacadMgd
             if (layer.LinetypeObjectId.IsValid)
             {
                 linetype = (trans.GetObject(layer.LinetypeObjectId,
-                    AcDb.OpenMode.ForRead) as AcDb.LayerTableRecord)?.Name;
+                    AcDb.OpenMode.ForRead) as AcDb.LinetypeTableRecord)?.Name;
             }
 
             return base.FromArx(obj, db);
