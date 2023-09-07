@@ -14,6 +14,7 @@ from enum import IntEnum
 from typing import Optional
 
 from sacad.acdb import Database
+from sacad.acge import Vector3d
 from sacad.jsonify import Jsonify
 
 __all__ = [
@@ -42,6 +43,8 @@ class DBInsertResult(Result):
     num_inserted: int = 0
     num_updated: int = 0
     num_failure: int = 0
+
+    user_insertion_point: Optional[Vector3d] = None
 
 
 @dataclass

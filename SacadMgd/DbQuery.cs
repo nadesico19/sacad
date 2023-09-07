@@ -61,7 +61,10 @@ namespace SacadMgd
                     InsertSymbol(db, clientDb?.dim_style_table, result);
 
                     if (prompt_insertion_point == true)
+                    {
                         PromptInsertionPoint(db);
+                        result.user_insertion_point = insertion_point;
+                    }
 
                     extents = InsertModelSpace(clientDb, db, trans, result);
 

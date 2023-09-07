@@ -34,6 +34,8 @@ namespace SacadMgd
         public int num_inserted;
         public int num_updated;
         public int num_failure;
+
+        public Vector3d user_insertion_point;
     }
 
     [PyType("sacad.result.DBSelectResult")]
