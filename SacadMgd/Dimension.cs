@@ -11,6 +11,7 @@
 
 using System;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
+using AcGe = Autodesk.AutoCAD.Geometry;
 
 // ReSharper disable InconsistentNaming
 
@@ -50,6 +51,7 @@ namespace SacadMgd
         public AcDb.AttachmentPoint? text_attachment;
         public double? text_line_spacing_factor;
         public AcDb.LineSpacingStyle? text_line_spacing_style;
+        public Vector2d text_offset;
         public Vector3d text_position;
         public double? text_rotation;
         public bool? tolerance_suppress_leading_zeros;
@@ -143,6 +145,23 @@ namespace SacadMgd
                 dim.TextLineSpacingFactor = text_line_spacing_factor.Value;
             if (text_line_spacing_style.HasValue)
                 dim.TextLineSpacingStyle = text_line_spacing_style.Value;
+
+            if (text_offset != null)
+            {
+                var offset = new AcGe.Vector3d(text_offset.X, text_offset.Y, 0);
+                if (matrix != null)
+                {
+                    var mtx = matrix.ToMatrix3d();
+                    matrix = null;
+
+                    dim.TransformBy(mtx);
+                    offset = offset.TransformBy(mtx);
+                }
+
+                dim.GenerateLayout();
+                dim.TextPosition += offset;
+            }
+
             if (text_position != null)
                 dim.TextPosition = text_position.ToPoint3d();
             if (text_rotation.HasValue) dim.TextRotation = text_rotation.Value;

@@ -487,6 +487,7 @@ class Dimension(Entity):
     text_attachment: Optional[AttachmentPoint] = None
     text_line_spacing_factor: Optional[float] = None
     text_line_spacing_style: Optional[LineSpacingStyle] = None
+    text_offset: Optional[Vector2d] = None
     text_position: Optional[Vector3d] = None
     text_rotation: Optional[float] = None
     tolerance_suppress_leading_zeros: Optional[bool] = None
