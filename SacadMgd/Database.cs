@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
+using AcGe = Autodesk.AutoCAD.Geometry;
 
 // ReSharper disable InconsistentNaming
 
@@ -130,7 +131,8 @@ namespace SacadMgd
             if (entity.Bounds.HasValue)
             {
                 geometric_extents =
-                    PyWrapper<Extents3d>.Create(entity.GeometricExtents);
+                    PyWrapper<Extents3d>.Create(
+                        (Extents3d)entity.GeometricExtents);
             }
 
             layer = entity.Layer;
@@ -277,6 +279,222 @@ namespace SacadMgd
             thickness = Util.ToOptional(dbText.Thickness);
             vertical_mode = Util.ToOptional(dbText.VerticalMode);
             width_factor = dbText.WidthFactor;
+
+            return base.FromArx(obj, db);
+        }
+    }
+
+    [PyType("sacad.acdb.HatchLoop")]
+    public class HatchLoop
+    {
+        public AcDb.HatchLoopTypes? loop_type;
+        public PyWrapper<Polyline> polyline;
+        public PyWrapper<Curve>[] curves;
+    }
+
+    [ArxEntity(typeof(AcDb.Hatch))]
+    [PyType("sacad.acdb.Hatch")]
+    public class Hatch : Entity
+    {
+        public bool? associative;
+        public PyWrapper<Color> background_color;
+        public double? elevation;
+        public double? gradient_angle;
+        public string gradient_name;
+        public bool? gradient_one_color_mode;
+        public float? gradient_shift;
+        public AcDb.GradientPatternType? gradient_type;
+        public AcDb.HatchObjectType? hatch_object_type;
+        public AcDb.HatchStyle? hatch_style;
+        public Vector3d normal;
+        public Vector2d origin;
+        public double? pattern_angle;
+        public bool? pattern_double;
+        public string pattern_name;
+        public double? pattern_scale;
+        public double? pattern_space;
+        public AcDb.HatchPatternType? pattern_type;
+        public float? shade_tint_value;
+
+        public PyWrapper<HatchLoop>[] hatch_loops;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.Hatch>(db);
+            var hatch = obj as AcDb.Hatch;
+
+            if (hatch_object_type == AcDb.HatchObjectType.HatchObject)
+            {
+                GenHatch(hatch, db);
+            }
+
+            // TODO gradient type
+
+            return base.ToArx(obj, db);
+        }
+
+        private void GenHatch(AcDb.Hatch hatch, AcDb.Database db)
+        {
+            if (!(hatch_loops?.Length > 0)) return;
+
+            if (pattern_scale.HasValue)
+                hatch.PatternScale = pattern_scale.Value;
+            if (pattern_double.HasValue)
+                hatch.PatternDouble = pattern_double.Value;
+            if (hatch_style.HasValue)
+                hatch.HatchStyle = hatch_style.Value;
+
+            hatch.SetHatchPattern(
+                pattern_type ?? AcDb.HatchPatternType.PreDefined, pattern_name);
+            db.AddToModelSpace(hatch);
+
+            if (pattern_angle.HasValue && pattern_angle.Value != 0)
+                hatch.PatternAngle = pattern_angle.Value;
+            if (associative.HasValue)
+                hatch.Associative = associative.Value;
+
+            foreach (var loop in hatch_loops.Select(e => e.__mbr__))
+            {
+                var hatchLoop = new AcDb.HatchLoop(
+                    loop.loop_type ?? AcDb.HatchLoopTypes.Default);
+
+                var polyline = loop.polyline?.__mbr__;
+                if (polyline?.vertices?.Length > 1)
+                {
+                    foreach (var vertex in polyline.vertices
+                                 .Select(e => e.__mbr__))
+                    {
+                        hatchLoop.Polyline.Add(
+                            new AcDb.BulgeVertex(vertex.point.ToPoint2d(),
+                                vertex.bulge ?? 0));
+                    }
+                }
+                else if (loop.curves?.Length > 0)
+                {
+                    foreach (var curve in loop.curves.Select(e => e.__mbr__))
+                    {
+                        AcGe.Curve2d curve2d = null;
+
+                        if (curve is Line)
+                        {
+                            var line = (Line)curve;
+                            curve2d = new AcGe.LineSegment2d(
+                                new AcGe.Point2d(line.start_point.X,
+                                    line.start_point.Y),
+                                new AcGe.Point2d(line.end_point.X,
+                                    line.end_point.Y));
+                        }
+                        else if (curve is Arc)
+                        {
+                            var arc = (Arc)curve;
+
+                            var center = new AcGe.Point2d(
+                                arc.center.X, arc.center.Y);
+                            var radius = arc.radius ?? 0;
+                            var start_angle = arc.start_angle ?? 0;
+                            var end_angle = arc.end_angle ?? 0;
+
+                            var start_ponit = center + radius
+                                * AcGe.Vector2d.XAxis.RotateBy(start_angle);
+                            var end_ponit = center + radius
+                                * AcGe.Vector2d.XAxis.RotateBy(end_angle);
+                            var point_on_arc = center + radius
+                                * AcGe.Vector2d.XAxis.RotateBy(
+                                    (start_angle + end_angle) / 2);
+
+                            curve2d = new AcGe.CircularArc2d(
+                                start_ponit, point_on_arc, end_ponit);
+                        }
+                        // TODO
+
+                        if (curve2d != null) hatchLoop.Curves.Add(curve2d);
+                    }
+                }
+
+                hatch.AppendLoop(hatchLoop);
+            }
+
+            hatch.EvaluateHatch(true);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var hatch = (AcDb.Hatch)obj;
+
+            hatch_object_type = hatch.HatchObjectType;
+            pattern_type = hatch.PatternType;
+            pattern_name = hatch.PatternName;
+            pattern_angle = Util.ToOptional(hatch.PatternAngle);
+            pattern_double = Util.ToOptional(hatch.PatternDouble);
+            pattern_scale = hatch.PatternScale;
+            hatch_style = hatch.HatchStyle;
+            associative = Util.ToOptional(hatch.Associative);
+
+            var hatchLoops = new List<PyWrapper<HatchLoop>>();
+
+            for (var i = 0; i < hatch.NumberOfLoops; i++)
+            {
+                var loop = hatch.GetLoopAt(i);
+                if (loop.IsPolyline)
+                {
+                    var polyline = new Polyline
+                    {
+                        vertices = loop.Polyline.OfType<AcDb.BulgeVertex>()
+                            .Select(v => PyWrapper<Vertex>
+                                .Create(new Vertex
+                                {
+                                    point = v.Vertex, bulge = v.Bulge
+                                }))
+                            .ToArray(),
+                    };
+
+                    hatchLoops.Add(PyWrapper<HatchLoop>.Create(
+                        new HatchLoop
+                        {
+                            loop_type = loop.LoopType,
+                            polyline = PyWrapper<Polyline>.Create(polyline),
+                        }));
+
+                    continue;
+                }
+
+                var curves = new List<PyWrapper<Curve>>();
+                foreach (var curve2d in loop.Curves.OfType<AcGe.Curve2d>())
+                {
+                    if (curve2d is AcGe.LineSegment2d)
+                    {
+                        var line2d = (AcGe.LineSegment2d)curve2d;
+                        curves.Add(PyWrapper<Curve>.Create(
+                            new Line
+                            {
+                                start_point = line2d.StartPoint,
+                                end_point = line2d.EndPoint,
+                            }));
+                    }
+                    else if (curve2d is AcGe.CircularArc2d)
+                    {
+                        var arc2d = (AcGe.CircularArc2d)curve2d;
+                        curves.Add(PyWrapper<Curve>.Create(
+                            new Arc
+                            {
+                                center = arc2d.Center,
+                                radius = arc2d.Radius,
+                                start_angle = arc2d.StartAngle,
+                                end_angle = arc2d.EndAngle,
+                            }));
+                    }
+                    // TODO
+                }
+
+                hatchLoops.Add(PyWrapper<HatchLoop>.Create(
+                    new HatchLoop
+                    {
+                        loop_type = loop.LoopType,
+                        curves = curves.ToArray(),
+                    }));
+            }
+
+            hatch_loops = hatchLoops.ToArray();
 
             return base.FromArx(obj, db);
         }

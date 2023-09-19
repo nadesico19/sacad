@@ -34,16 +34,21 @@ __all__ = [
     'AttachmentPoint',
     'DimensionCenterMarkType',
     'LineSpacingStyle',
+    'HatchObjectType',
+    'HatchStyle',
+    'HatchPatternType',
+    'HatchLoopTypes',
     'DBObject',
     'Entity',
     # 'BlockReference',
     'DBText',
-    # 'Hatch',
+    'HatchLoop',
+    'Hatch',
     'Curve',
     'Arc',
     'Circle',
     # 'Ellipse',
-    # 'Leader',
+    'Leader',
     'Line',
     'Vertex',
     'Polyline',
@@ -127,29 +132,29 @@ class TextVerticalMode(IntEnum):
 
 
 class AttachmentPoint(IntEnum):
-    BASE_ALIGN = 13,
-    BASE_CENTER = 11,
-    BASE_FIT = 0x11,
-    BASE_LEFT = 10,
-    BASE_MID = 0x15,
-    BASE_RIGHT = 12,
-    BOTTOM_ALIGN = 14,
-    BOTTOM_CENTER = 8,
-    BOTTOM_FIT = 0x12,
-    BOTTOM_LEFT = 7,
-    BOTTOM_MID = 0x16,
-    BOTTOM_RIGHT = 9,
-    MIDDLE_ALIGN = 15,
-    MIDDLE_CENTER = 5,
-    MIDDLE_FIT = 0x13,
-    MIDDLE_LEFT = 4,
-    MIDDLE_MID = 0x17,
-    MIDDLE_RIGHT = 6,
-    TOP_ALIGN = 0x10,
-    TOP_CENTER = 2,
-    TOP_FIT = 20,
-    TOP_LEFT = 1,
-    TOP_MID = 0x18,
+    BASE_ALIGN = 13
+    BASE_CENTER = 11
+    BASE_FIT = 0x11
+    BASE_LEFT = 10
+    BASE_MID = 0x15
+    BASE_RIGHT = 12
+    BOTTOM_ALIGN = 14
+    BOTTOM_CENTER = 8
+    BOTTOM_FIT = 0x12
+    BOTTOM_LEFT = 7
+    BOTTOM_MID = 0x16
+    BOTTOM_RIGHT = 9
+    MIDDLE_ALIGN = 15
+    MIDDLE_CENTER = 5
+    MIDDLE_FIT = 0x13
+    MIDDLE_LEFT = 4
+    MIDDLE_MID = 0x17
+    MIDDLE_RIGHT = 6
+    TOP_ALIGN = 0x10
+    TOP_CENTER = 2
+    TOP_FIT = 20
+    TOP_LEFT = 1
+    TOP_MID = 0x18
     TOP_RIGHT = 3
 
 
@@ -160,8 +165,38 @@ class DimensionCenterMarkType(IntEnum):
 
 
 class LineSpacingStyle(IntEnum):
-    AT_LEAST = 1,
+    AT_LEAST = 1
     EXACTLY = 2
+
+
+class HatchObjectType(IntEnum):
+    HATCH_OBJECT = 0
+    GRADIENT_OBJECT = 1
+
+
+class HatchStyle(IntEnum):
+    NORMAL = 0
+    OUTER = 1
+    IGNORE = 2
+
+
+class HatchPatternType(IntEnum):
+    USER_DEFINED = 0
+    PRE_DEFINED = 1
+    CUSTOM_DEFINED = 2
+
+
+class HatchLoopTypes(IntEnum):
+    DEFAULT = 0
+    DERIVED = 4
+    DUPLICATE = 0X100
+    EXTERNAL = 1
+    NOT_CLOSED = 0X20
+    OUTERMOST = 0X10
+    POLYLINE = 2
+    SELF_INTERSECTING = 0X40
+    TEXTBOX = 8
+    TEXT_ISLAND = 0X80
 
 
 @dataclass
@@ -302,9 +337,24 @@ class DBText(Entity):
                 _dbtext_attachment_modes[attach]
 
 
-# @dataclass
-# class Hatch(Entity):
-#     pass
+@dataclass
+class HatchLoop(Jsonify):
+    loop_type: Optional[HatchLoopTypes] = None
+    polyline: Optional['Polyline'] = None
+    curves: Optional[List['Curve']] = None
+
+
+@dataclass
+class Hatch(Entity):
+    associative: Optional[bool] = None
+    hatch_object_type: Optional[HatchObjectType] = None
+    hatch_style: Optional[HatchStyle] = None
+    pattern_angle: Optional[float] = None
+    pattern_double: Optional[bool] = None
+    pattern_name: Optional[str] = None
+    pattern_scale: Optional[float] = None
+    pattern_type: Optional[HatchPatternType] = None
+    hatch_loops: Optional[List[HatchLoop]] = None
 
 
 @dataclass
@@ -366,9 +416,9 @@ class Circle(Curve):
 #     pass
 
 
-# @dataclass
-# class Leader(Curve):
-#     pass
+@dataclass
+class Leader(Curve):
+    pass
 
 
 @dataclass
@@ -1933,9 +1983,11 @@ class Extents3d(Jsonify):
 # (e.g. PyCharm) on @dataclass.
 
 DBText = csharp_polymorphic_type("SacadMgd.DBText, SacadMgd")(DBText)
+Hatch = csharp_polymorphic_type("SacadMgd.Hatch, SacadMgd")(Hatch)
 
 Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
 Circle = csharp_polymorphic_type("SacadMgd.Circle, SacadMgd")(Circle)
+Leader = csharp_polymorphic_type("SacadMgd.Leader, SacadMgd")(Leader)
 Line = csharp_polymorphic_type("SacadMgd.Line, SacadMgd")(Line)
 Polyline = csharp_polymorphic_type("SacadMgd.Polyline, SacadMgd")(Polyline)
 

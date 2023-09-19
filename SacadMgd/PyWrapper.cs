@@ -27,7 +27,7 @@ namespace SacadMgd
         {
         }
 
-        public static PyWrapper<T> Create(T pyObject)
+        public static PyWrapper<T> Create<U>(U pyObject) where U : T
         {
             return new PyWrapper<T>
             {

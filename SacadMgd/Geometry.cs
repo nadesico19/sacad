@@ -70,6 +70,12 @@ namespace SacadMgd
         public static explicit operator AcGe.Point3d(Vector3d v) =>
             new AcGe.Point3d(v.X, v.Y, v.Z);
 
+        public static implicit operator Vector3d(AcGe.Vector2d v) =>
+            new Vector3d { __mbr__ = new[] { v.X, v.Y, 0 } };
+
+        public static implicit operator Vector3d(AcGe.Point2d p) =>
+            new Vector3d { __mbr__ = new[] { p.X, p.Y, 0 } };
+
         public static implicit operator Vector3d(AcGe.Vector3d v) =>
             new Vector3d { __mbr__ = v.ToArray() };
 

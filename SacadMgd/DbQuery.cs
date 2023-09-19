@@ -189,7 +189,8 @@ namespace SacadMgd
                     if (transform.HasValue)
                         newEntity.TransformBy(transform.Value);
 
-                    db.AddToModelSpace(newEntity);
+                    if (newEntity.ObjectId.IsNull)
+                        db.AddToModelSpace(newEntity);
                     trans.AddNewlyCreatedDBObject(newEntity, true);
 
                     if (zoom_mode == ZoomMode.Added &&
