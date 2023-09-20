@@ -67,6 +67,94 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.Circle))]
+    [PyType("sacad.acdb.Circle")]
+    public sealed class Circle : Curve
+    {
+        public Vector3d center;
+        public Vector3d normal;
+        public double? radius;
+        public double? thickness;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.Circle>(db);
+            var circle = (AcDb.Circle)obj;
+
+            if (center != null) circle.Center = center.ToPoint3d();
+            if (normal != null) circle.Normal = normal.ToVector3d();
+            if (radius.HasValue) circle.Radius = radius.Value;
+            if (thickness.HasValue) circle.Thickness = thickness.Value;
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var circle = (AcDb.Circle)obj;
+
+            center = circle.Center;
+            normal = circle.Normal;
+            radius = circle.Radius;
+            thickness = circle.Thickness;
+
+            return base.FromArx(obj, db);
+        }
+    }
+
+    [ArxEntity(typeof(AcDb.Ellipse))]
+    [PyType("sacad.acdb.Ellipse")]
+    public sealed class Ellipse : Curve
+    {
+        public Vector3d center;
+        public double? end_angle;
+        public Vector3d major_axis;
+        public Vector3d minor_axis;
+        public double? start_angle;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.Ellipse>(db);
+            var ellipse = (AcDb.Ellipse)obj;
+
+            if (major_axis == null || minor_axis == null) return obj;
+
+            var major = major_axis.ToVector3d();
+            var minor = minor_axis.ToVector3d();
+
+            if (major.Length < 1e-6 || minor.Length < 1e-6) return obj;
+
+            var ratio = minor.Length / major.Length;
+            if (ratio < 1e-6 || ratio > 1.0) return obj;
+
+            var sangle = start_angle ?? 0;
+            var eangle = end_angle ?? Math.PI * 2;
+
+            if (sangle < 0 || eangle > Math.PI * 2 || eangle < sangle)
+                return obj;
+
+            ellipse.Set(
+                center?.ToPoint3d() ?? AcGe.Point3d.Origin,
+                major.CrossProduct(minor).GetNormal(),
+                major, ratio, sangle, eangle);
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var ellipse = (AcDb.Ellipse)obj;
+
+            center = ellipse.Center;
+            end_angle = ellipse.EndAngle;
+            major_axis = ellipse.MajorAxis;
+            minor_axis = ellipse.MinorAxis;
+            start_angle = ellipse.StartAngle;
+
+            return base.FromArx(obj, db);
+        }
+    }
+
     [ArxEntity(typeof(AcDb.Line))]
     [PyType("sacad.acdb.Line")]
     public sealed class Line : Curve

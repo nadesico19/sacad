@@ -47,7 +47,7 @@ __all__ = [
     'Curve',
     'Arc',
     'Circle',
-    # 'Ellipse',
+    'Ellipse',
     'Leader',
     'Line',
     'Vertex',
@@ -411,9 +411,21 @@ class Circle(Curve):
         return self.get_diameter() * math.pi
 
 
-# @dataclass
-# class Ellipse(Curve):
-#     pass
+@dataclass
+class Ellipse(Curve):
+    center: Optional[Vector3d] = None
+    end_angle: Optional[float] = None
+    major_axis: Optional[Vector3d] = None
+    minor_axis: Optional[Vector3d] = None
+    start_angle: Optional[float] = None
+
+    @staticmethod
+    def new(cx, cy, rx, ry, **kwargs):
+        return Ellipse(
+            center=Vector3d(cx, cy),
+            major_axis=rx * Vector3d.xaxis(),
+            minor_axis=ry * Vector3d.yaxis(),
+            **kwargs)
 
 
 @dataclass
@@ -1987,6 +1999,7 @@ Hatch = csharp_polymorphic_type("SacadMgd.Hatch, SacadMgd")(Hatch)
 
 Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
 Circle = csharp_polymorphic_type("SacadMgd.Circle, SacadMgd")(Circle)
+Ellipse = csharp_polymorphic_type("SacadMgd.Ellipse, SacadMgd")(Ellipse)
 Leader = csharp_polymorphic_type("SacadMgd.Leader, SacadMgd")(Leader)
 Line = csharp_polymorphic_type("SacadMgd.Line, SacadMgd")(Line)
 Polyline = csharp_polymorphic_type("SacadMgd.Polyline, SacadMgd")(Polyline)
