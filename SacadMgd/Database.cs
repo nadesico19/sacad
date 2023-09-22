@@ -368,6 +368,17 @@ namespace SacadMgd
                             new AcDb.BulgeVertex(vertex.point.ToPoint2d(),
                                 vertex.bulge ?? 0));
                     }
+
+                    var firstv = polyline.vertices.First().__mbr__;
+                    var lastv = polyline.vertices.Last().__mbr__;
+
+                    if (firstv.point.ToPoint2d().GetDistanceTo(
+                            lastv.point.ToPoint2d()) > 1e-6)
+                    {
+                        hatchLoop.Polyline.Add(
+                            new AcDb.BulgeVertex(firstv.point.ToPoint2d(),
+                                firstv.bulge ?? 0));
+                    }
                 }
                 else if (loop.curves?.Length > 0)
                 {

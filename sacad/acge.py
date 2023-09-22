@@ -204,10 +204,12 @@ class Matrix3d(np.ndarray, Jsonify):
         ), dtype=float))
         return Matrix3d(np.dot(transfer, self))
 
-    def rotate(self, degrees: Number, axis: Vector3d = Vector3d.zaxis()):
+    def rotate(self, degrees: Number, axis: Vector3d = Vector3d.zaxis()) \
+            -> 'Matrix3d':
         return self.rotater(math.radians(degrees), axis)
 
-    def rotater(self, radians: Number, axis: Vector3d = Vector3d.zaxis()):
+    def rotater(self, radians: Number, axis: Vector3d = Vector3d.zaxis()) \
+            -> 'Matrix3d':
         cosa, sina = math.cos(radians), math.sin(radians)
         if axis == Vector3d.xaxis():
             rotation = Matrix3d(np.array((
@@ -255,7 +257,8 @@ class Matrix3d(np.ndarray, Jsonify):
         return Matrix3d(np.dot(rotation, self))
 
     def scale(self, linear_factor: Number = 1, mirror_x: bool = False,
-              mirror_y: bool = False, mirror_z: bool = False):
+              mirror_y: bool = False, mirror_z: bool = False) \
+            -> 'Matrix3d':
         scale = Matrix3d(np.array((
             linear_factor * (-1 if mirror_x else 1), 0, 0, 0,
             0, linear_factor * (-1 if mirror_y else 1), 0, 0,
