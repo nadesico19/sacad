@@ -342,17 +342,11 @@ namespace SacadMgd
             foreach (var leader in leader_lines)
             {
                 var leaderIdx = mLeader.AddLeader();
+                var lineIdx = mLeader.AddLeaderLine(leaderIdx);
 
-                for (var i = 0; i < leader.Length - 1; i++)
+                foreach (var vertex in leader)
                 {
-                    var lineIdx = mLeader.AddLeaderLine(leaderIdx);
-                    mLeader.AddFirstVertex(lineIdx, leader[i].ToPoint3d());
-
-                    if (i == 0)
-                    {
-                        mLeader.AddLastVertex(lineIdx,
-                            leader[leader.Length - 1].ToPoint3d());
-                    }
+                    mLeader.AddLastVertex(lineIdx, vertex.ToPoint3d());
                 }
             }
 
