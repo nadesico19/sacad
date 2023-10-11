@@ -60,6 +60,9 @@ namespace SacadMgd
                     InsertSymbol(db, clientDb?.layer_table, result);
                     InsertSymbol(db, clientDb?.dim_style_table, result);
 
+                    InsertDictItem(db, clientDb?.m_leader_style_dict,
+                        result);
+
                     if (prompt_insertion_point == true)
                     {
                         PromptInsertionPoint(db);
@@ -107,9 +110,9 @@ namespace SacadMgd
             return result;
         }
 
-        private void InsertSymbol<T>(AcDb.Database db,
-            Dictionary<string, PyWrapper<T>> symbolTable,
-            DbInsertResult result) where T : SymbolTableRecord
+        private void InsertSymbol<TRecord>(AcDb.Database db,
+            Dictionary<string, PyWrapper<TRecord>> symbolTable,
+            DbInsertResult result) where TRecord : SymbolTableRecord
         {
             if (symbolTable == null) return;
 
@@ -144,6 +147,47 @@ namespace SacadMgd
                 {
                     Util.ConsoleWriteLine(
                         $"{symbol.__cls__} insertion failed: {ex.Message}");
+                    result.num_failure++;
+                }
+            }
+        }
+
+        private void InsertDictItem<TItem>(AcDb.Database db,
+            Dictionary<string, PyWrapper<TItem>> dict,
+            DbInsertResult result) where TItem : DictionaryItem
+        {
+            if (dict == null) return;
+
+            var trans = db.TransactionManager.TopTransaction;
+
+            foreach (var item in dict.Values)
+            {
+                try
+                {
+                    var oldSymbol = item.__mbr__.GetFromDict(db);
+                    if (oldSymbol != null)
+                    {
+                        if (upsert != true) continue;
+
+                        oldSymbol.UpgradeOpen();
+                        item.__mbr__.ToArx(oldSymbol, db);
+                        oldSymbol.DowngradeOpen();
+
+                        result.num_updated++;
+                    }
+                    else
+                    {
+                        var newSymbol = item.__mbr__.ToArx(null, db);
+                        item.__mbr__.AddToDict(newSymbol, db);
+                        trans.AddNewlyCreatedDBObject(newSymbol, true);
+
+                        result.num_inserted++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Util.ConsoleWriteLine(
+                        $"{item.__cls__} insertion failed: {ex.Message}");
                     result.num_failure++;
                 }
             }
@@ -334,6 +378,16 @@ namespace SacadMgd
                 SelectSymbols(db, db.DimStyleTableId,
                     result.db.__mbr__.dim_style_table);
             }
+
+            if ((table_flags & (int)TableFlags.MLeaderStyle) != 0)
+            {
+                result.db.__mbr__.m_leader_style_dict =
+                    result.db.__mbr__.m_leader_style_dict ??
+                    new Dictionary<string, PyWrapper<MLeaderStyle>>();
+
+                SelectDictItems(db, db.MLeaderStyleDictionaryId,
+                    result.db.__mbr__.m_leader_style_dict);
+            }
         }
 
         private void TestEntities(AcDb.Database db, DbSelectResult result)
@@ -415,6 +469,29 @@ namespace SacadMgd
             }
         }
 
+        private static void SelectDictItems<TItem>(
+            AcDb.Database db, AcDb.ObjectId dictionaryId,
+            IDictionary<string, PyWrapper<TItem>> dict)
+            where TItem : DictionaryItem, new()
+        {
+            var trans = db.TransactionManager.TopTransaction;
+
+            var arxDict = (AcDb.DBDictionary)trans.GetObject(dictionaryId,
+                AcDb.OpenMode.ForRead);
+            foreach (var entry in arxDict)
+            {
+                if (!entry.Value.IsValid) continue;
+
+                var arxItem = trans.GetObject(entry.Value,
+                    AcDb.OpenMode.ForRead);
+
+                var item = new TItem();
+                item.FromArx(arxItem, db);
+
+                dict[item.name] = PyWrapper<TItem>.Create(item);
+            }
+        }
+
         public enum Mode
         {
             GetTables,
@@ -429,6 +506,7 @@ namespace SacadMgd
             Linetype = 0x04,
             Layer = 0x08,
             DimStyle = 0x10,
+            MLeaderStyle = 0x20,
         }
     }
 }

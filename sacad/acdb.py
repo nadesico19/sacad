@@ -12,7 +12,6 @@
 """acdb: AcDb stands for `Autodesk.AutoCAD.DatabaseServices`."""
 
 import math
-
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Dict, List, Optional, TypeVar
@@ -38,17 +37,24 @@ __all__ = [
     'HatchStyle',
     'HatchPatternType',
     'HatchLoopTypes',
+    'ContentType',
+    'LeaderDirectionType',
+    'TextAngleType',
+    'TextAlignmentType',
+    'TextAttachmentType',
+    'TextAttachmentDirection',
     'DBObject',
     'Entity',
     # 'BlockReference',
     'DBText',
+    'MText',
+    'MLeader',
     'HatchLoop',
     'Hatch',
     'Curve',
     'Arc',
     'Circle',
     'Ellipse',
-    'Leader',
     'Line',
     'Vertex',
     'Polyline',
@@ -199,6 +205,52 @@ class HatchLoopTypes(IntEnum):
     TEXT_ISLAND = 0X80
 
 
+class ContentType(IntEnum):
+    NONE_CONTENT = 0
+    BLOCK_CONTENT = 1
+    M_TEXT_CONTENT = 2
+    TOLERANCE_CONTENT = 3
+
+
+class LeaderDirectionType(IntEnum):
+    UNKNOWN_LEADER = 0
+    LEFT_LEADER = 1
+    RIGHT_LEADER = 2
+    TOP_LEADER = 3
+    BOTTOM_LEADER = 4
+
+
+class TextAngleType(IntEnum):
+    INSERT_ANGLE = 0
+    HORIZONTAL_ANGLE = 1
+    ALWAYS_RIGHT_READING_ANGLE = 2
+
+
+class TextAlignmentType(IntEnum):
+    LEFT_ALIGNMENT = 0
+    CENTER_ALIGNMENT = 1
+    RIGHT_ALIGNMENT = 2
+
+
+class TextAttachmentType(IntEnum):
+    ATTACHMENT_TOP_OF_TOP = 0
+    ATTACHMENT_MIDDLE_OF_TOP = 1
+    ATTACHMENT_MIDDLE = 2
+    ATTACHMENT_MIDDLE_OF_BOTTOM = 3
+    ATTACHMENT_BOTTOM_OF_BOTTOM = 4
+    ATTACHMENT_BOTTOM_LINE = 5
+    ATTACHMENT_BOTTOM_OF_TOP_LINE = 6
+    ATTACHMENT_BOTTOM_OF_TOP = 7
+    ATTACHMENT_ALL_LINE = 8
+    ATTACHMENT_CENTER = 9
+    ATTACHMENT_LINED_CENTER = 10
+
+
+class TextAttachmentDirection(IntEnum):
+    ATTACHMENT_HORIZONTAL = 0
+    ATTACHMENT_VERTICAL = 1
+
+
 @dataclass
 class DBObject(Jsonify):
     id: ObjectId = None
@@ -338,6 +390,37 @@ class DBText(Entity):
 
 
 @dataclass
+class MText(Entity):
+    contents: Optional[str] = None
+    location: Optional[Vector3d] = None
+    text_height: Optional[float] = None
+    text_style_name: Optional[str] = None
+    width: Optional[float] = None
+
+    @staticmethod
+    def new(x: Number, y: Number, contents: str, text_height: Number = None,
+            text_style_name: str = None, **kwargs) -> 'MText':
+        return MText(location=Vector3d(x, y), contents=contents,
+                     text_height=text_height, text_style_name=text_style_name,
+                     **kwargs)
+
+
+@dataclass
+class MLeader(Entity):
+    leader_lines: Optional[List[List[Vector3d]]] = None
+    content_type: Optional[ContentType] = None
+    m_leader_style: Optional[str] = None
+    m_text: Optional[MText] = None
+
+    @staticmethod
+    def new_text(lines: List[List[Vector3d]], text: MText, style: str = None,
+                 **kwargs) -> 'MLeader':
+        return MLeader(content_type=ContentType.M_TEXT_CONTENT,
+                       leader_lines=lines, m_leader_style=style, m_text=text,
+                       **kwargs)
+
+
+@dataclass
 class HatchLoop(Jsonify):
     loop_type: Optional[HatchLoopTypes] = None
     polyline: Optional['Polyline'] = None
@@ -426,11 +509,6 @@ class Ellipse(Curve):
             major_axis=rx * Vector3d.xaxis(),
             minor_axis=ry * Vector3d.yaxis(),
             **kwargs)
-
-
-@dataclass
-class Leader(Curve):
-    pass
 
 
 @dataclass
@@ -1953,6 +2031,20 @@ class TextStyleTableRecord(SymbolTableRecord):
 
 
 @dataclass
+class MLeaderStyle(DBObject):
+    arrow_size: Optional[float] = None
+    break_size: Optional[float] = None
+    content_type: Optional[ContentType] = None
+    dogleg_length: Optional[float] = None
+    landing_gap: Optional[float] = None
+    name: Optional[str] = None
+    text_angle_type: Optional[TextAngleType] = None
+    text_alignment_type: Optional[TextAlignmentType] = None
+    text_attachment_type: Optional[TextAttachmentType] = None
+    text_style_name: Optional[str] = None
+
+
+@dataclass
 class Database(Jsonify):
     block_table: Dict[str, BlockTableRecord] = field(default_factory=dict)
     dim_style_table: Dict[str, DimStyleTableRecord] = field(
@@ -1961,6 +2053,7 @@ class Database(Jsonify):
     linetype_table: Dict[str, LinetypeTableRecord] = field(default_factory=dict)
     text_style_table: Dict[str, TextStyleTableRecord] = field(
         default_factory=dict)
+    m_leader_style_dict: Dict[str, MLeaderStyle] = field(default_factory=dict)
 
     def get_block(self, name):
         if name not in self.block_table:
@@ -1995,12 +2088,13 @@ class Extents3d(Jsonify):
 # (e.g. PyCharm) on @dataclass.
 
 DBText = csharp_polymorphic_type("SacadMgd.DBText, SacadMgd")(DBText)
+MText = csharp_polymorphic_type("SacadMgd.MText, SacadMgd")(MText)
+MLeader = csharp_polymorphic_type("SacadMgd.MLeader, SacadMgd")(MLeader)
 Hatch = csharp_polymorphic_type("SacadMgd.Hatch, SacadMgd")(Hatch)
 
 Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
 Circle = csharp_polymorphic_type("SacadMgd.Circle, SacadMgd")(Circle)
 Ellipse = csharp_polymorphic_type("SacadMgd.Ellipse, SacadMgd")(Ellipse)
-Leader = csharp_polymorphic_type("SacadMgd.Leader, SacadMgd")(Leader)
 Line = csharp_polymorphic_type("SacadMgd.Line, SacadMgd")(Line)
 Polyline = csharp_polymorphic_type("SacadMgd.Polyline, SacadMgd")(Polyline)
 

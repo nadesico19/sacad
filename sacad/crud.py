@@ -59,6 +59,7 @@ class TableFlags(IntEnum):
     LINETYPE = 0x04
     LAYER = 0x08
     DIM_STYLE = 0x10
+    M_LEADER_STYLE = 0x20
 
 
 @dataclass

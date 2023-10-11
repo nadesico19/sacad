@@ -69,6 +69,9 @@
         <Compile Include="..\DbQuery.cs">
           <Link>DbQuery.cs</Link>
         </Compile>
+        <Compile Include="..\DictionaryItem.cs">
+          <Link>DictionaryItem.cs</Link>
+        </Compile>
         <Compile Include="..\Dimension.cs">
           <Link>Dimension.cs</Link>
         </Compile>

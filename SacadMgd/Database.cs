@@ -25,6 +25,7 @@ namespace SacadMgd
     using LayerTable = Dictionary<string, PyWrapper<LayerTableRecord>>;
     using LinetypeTable = Dictionary<string, PyWrapper<LinetypeTableRecord>>;
     using TextStyleTable = Dictionary<string, PyWrapper<TextStyleTableRecord>>;
+    using MLeaderStyleDict = Dictionary<string, PyWrapper<MLeaderStyle>>;
 
     [PyType("sacad.acdb.Database")]
     public sealed class Database
@@ -34,6 +35,7 @@ namespace SacadMgd
         public LayerTable layer_table;
         public LinetypeTable linetype_table;
         public TextStyleTable text_style_table;
+        public MLeaderStyleDict m_leader_style_dict;
 
         public BlockTable GetBlockTable() => Ensure(ref block_table);
         public DimStyleTable GetDimStyleTable() => Ensure(ref dim_style_table);
@@ -42,6 +44,9 @@ namespace SacadMgd
 
         public TextStyleTable GetTextStyleTable() =>
             Ensure(ref text_style_table);
+
+        public MLeaderStyleDict GetMLeaderStyleDict() =>
+            Ensure(ref m_leader_style_dict);
 
         public BlockTableRecord GetBlockTableRecord(string name)
         {
@@ -72,7 +77,7 @@ namespace SacadMgd
 
         public virtual DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
         {
-            id = obj.Id.OldIdPtr.ToInt64();
+            id = obj.ObjectId.OldIdPtr.ToInt64();
             return this;
         }
     }
@@ -284,6 +289,106 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.MText))]
+    [PyType("sacad.acdb.MText")]
+    public class MText : Entity
+    {
+        public string contents;
+        public Vector3d location;
+        public double? text_height;
+        public string text_style_name;
+        public double? width;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.MText>(db);
+            var mText = (AcDb.MText)obj;
+
+            if (contents != null) mText.Contents = contents;
+            if (location != null) mText.Location = location.ToPoint3d();
+            if (text_height.HasValue) mText.TextHeight = text_height.Value;
+
+            if (text_style_name != null)
+            {
+                var style = db.GetTextStyle(text_style_name);
+                if (style != null) mText.TextStyleId = style.ObjectId;
+            }
+
+            if (width.HasValue) mText.Width = width.Value;
+
+            return base.ToArx(obj, db);
+        }
+    }
+
+    [ArxEntity(typeof(AcDb.MLeader))]
+    [PyType("sacad.acdb.MLeader")]
+    public sealed class MLeader : Entity
+    {
+        public Vector3d[][] leader_lines;
+        public AcDb.ContentType? content_type;
+        public string m_leader_style;
+        public PyWrapper<MText> m_text;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.MLeader>(db);
+            var mLeader = (AcDb.MLeader)obj;
+
+            while (mLeader.LeaderCount > 0)
+            {
+                mLeader.RemoveLeader(0);
+            }
+
+            foreach (var leader in leader_lines)
+            {
+                var leaderIdx = mLeader.AddLeader();
+
+                for (var i = 0; i < leader.Length - 1; i++)
+                {
+                    var lineIdx = mLeader.AddLeaderLine(leaderIdx);
+                    mLeader.AddFirstVertex(lineIdx, leader[i].ToPoint3d());
+
+                    if (i == 0)
+                    {
+                        mLeader.AddLastVertex(lineIdx,
+                            leader[leader.Length - 1].ToPoint3d());
+                    }
+                }
+            }
+
+            mLeader.ContentType = content_type ?? AcDb.ContentType.NoneContent;
+
+            AcDb.MLeaderStyle mLeaderStyle = null;
+            if (m_leader_style != null)
+            {
+                mLeaderStyle = db.GetMLeaderStyle(m_leader_style);
+                if (mLeaderStyle != null)
+                    mLeader.MLeaderStyle = mLeaderStyle.ObjectId;
+            }
+
+            if (m_text != null)
+            {
+                var mText = (AcDb.MText)m_text.__mbr__.ToArx(null, db);
+
+                if (mLeaderStyle != null)
+                    mText.TextStyleId = mLeaderStyle.TextStyleId;
+
+                mLeader.MText = mText;
+            }
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var mLeader = (AcDb.MLeader)obj;
+
+            // TODO
+
+            return base.FromArx(obj, db);
+        }
+    }
+
     [PyType("sacad.acdb.HatchLoop")]
     public class HatchLoop
     {
@@ -321,7 +426,7 @@ namespace SacadMgd
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
             obj = obj ?? New<AcDb.Hatch>(db);
-            var hatch = obj as AcDb.Hatch;
+            var hatch = (AcDb.Hatch)obj;
 
             if (hatch_object_type == AcDb.HatchObjectType.HatchObject)
             {

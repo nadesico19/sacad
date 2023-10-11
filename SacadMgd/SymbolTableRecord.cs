@@ -208,19 +208,19 @@ namespace SacadMgd
             if (dimltex1 != null)
             {
                 var linetype = db.GetLinetype(dimltex1);
-                if (linetype != null) dimStyle.Dimltex1 = linetype.Id;
+                if (linetype != null) dimStyle.Dimltex1 = linetype.ObjectId;
             }
 
             if (dimltex2 != null)
             {
                 var linetype = db.GetLinetype(dimltex2);
-                if (linetype != null) dimStyle.Dimltex2 = linetype.Id;
+                if (linetype != null) dimStyle.Dimltex2 = linetype.ObjectId;
             }
 
             if (dimltype != null)
             {
                 var linetype = db.GetLinetype(dimltype);
-                if (linetype != null) dimStyle.Dimltype = linetype.Id;
+                if (linetype != null) dimStyle.Dimltype = linetype.ObjectId;
             }
 
             if (dimlunit.HasValue) dimStyle.Dimlunit = dimlunit.Value;

@@ -113,6 +113,21 @@ namespace SacadMgd
             return null;
         }
 
+        public static AcDb.MLeaderStyle GetMLeaderStyle(this AcDb.Database db,
+            string name)
+        {
+            var trans = db.TransactionManager.TopTransaction;
+            var dict = (AcDb.DBDictionary)trans.GetObject(
+                db.MLeaderStyleDictionaryId, AcDb.OpenMode.ForRead);
+            if (dict.Contains(name))
+            {
+                return (AcDb.MLeaderStyle)trans.GetObject(dict.GetAt(name),
+                    AcDb.OpenMode.ForRead);
+            }
+
+            return null;
+        }
+
         [SuppressMessage("ReSharper", "AccessToStaticMemberViaDerivedType")]
         public static AcDb.ObjectId GetDimblk(this AcDb.Database db,
             string dimBlkSysVar, string arrowName)
@@ -173,6 +188,10 @@ namespace SacadMgd
                 AcDb.OpenMode.ForWrite);
             return table.Add(dimStyle);
         }
+
+        public static AcDb.ObjectId AddMLeaderStyle(this AcDb.Database db,
+            AcDb.MLeaderStyle mLeaderStyle, string name)
+            => mLeaderStyle.PostMLeaderStyleToDb(db, name);
 
         public static AcDb.ObjectId AddBlock(this AcDb.Database db,
             AcDb.BlockTableRecord block)
