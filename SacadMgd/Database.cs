@@ -388,7 +388,10 @@ namespace SacadMgd
                     var vend = mLeader.GetLastVertex(lineIdx);
 
                     if (vdog.DotProduct(vstart - vend) > -1e-6)
+                    {
                         mLeader.SetDogleg(leaderIdx, -vdog);
+                        mLeader.SetLastVertex(lineIdx, vend);
+                    }
 
                     break;
                 }
