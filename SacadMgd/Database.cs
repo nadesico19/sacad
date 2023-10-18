@@ -293,6 +293,7 @@ namespace SacadMgd
     [PyType("sacad.acdb.MText")]
     public class MText : Entity
     {
+        public AcDb.AttachmentPoint? attachment;
         public string contents;
         public Vector3d location;
         public double? text_height;
@@ -304,6 +305,7 @@ namespace SacadMgd
             obj = obj ?? New<AcDb.MText>(db);
             var mText = (AcDb.MText)obj;
 
+            if (attachment.HasValue) mText.Attachment = attachment.Value;
             if (contents != null) mText.Contents = contents;
             if (location != null) mText.Location = location.ToPoint3d();
             if (text_height.HasValue) mText.TextHeight = text_height.Value;
@@ -318,6 +320,8 @@ namespace SacadMgd
 
             return base.ToArx(obj, db);
         }
+
+        // TODO
     }
 
     [ArxEntity(typeof(AcDb.MLeader))]
@@ -328,6 +332,7 @@ namespace SacadMgd
         public AcDb.ContentType? content_type;
         public string m_leader_style;
         public PyWrapper<MText> m_text;
+        public AcDb.TextAlignmentType? text_alignment_type;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
@@ -368,6 +373,25 @@ namespace SacadMgd
                     mText.TextStyleId = mLeaderStyle.TextStyleId;
 
                 mLeader.MText = mText;
+            }
+
+            if (text_alignment_type.HasValue)
+                mLeader.TextAlignmentType = text_alignment_type.Value;
+
+            foreach (int leaderIdx in mLeader.GetLeaderIndexes())
+            {
+                var vdog = mLeader.GetDogleg(leaderIdx);
+
+                foreach (int lineIdx in mLeader.GetLeaderLineIndexes(leaderIdx))
+                {
+                    var vstart = mLeader.GetFirstVertex(lineIdx);
+                    var vend = mLeader.GetLastVertex(lineIdx);
+
+                    if (vdog.DotProduct(vstart - vend) > -1e-6)
+                        mLeader.SetDogleg(leaderIdx, -vdog);
+
+                    break;
+                }
             }
 
             return base.ToArx(obj, db);
