@@ -391,6 +391,7 @@ class DBText(Entity):
 
 @dataclass
 class MText(Entity):
+    attachment: Optional[AttachmentPoint] = None
     contents: Optional[str] = None
     location: Optional[Vector3d] = None
     text_height: Optional[float] = None
@@ -411,12 +412,15 @@ class MLeader(Entity):
     content_type: Optional[ContentType] = None
     m_leader_style: Optional[str] = None
     m_text: Optional[MText] = None
+    text_alignment_type: Optional[TextAlignmentType] = None
 
     @staticmethod
-    def new_text(lines: List[List[Vector3d]], text: MText, style: str = None,
+    def new_text(lines: List[List[Vector2d]], text: MText, style: str = None,
                  **kwargs) -> 'MLeader':
         return MLeader(content_type=ContentType.M_TEXT_CONTENT,
-                       leader_lines=lines, m_leader_style=style, m_text=text,
+                       leader_lines=[[Vector3d(v.x, v.y) for v in line]
+                                     for line in lines],
+                       m_leader_style=style, m_text=text,
                        **kwargs)
 
 

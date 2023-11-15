@@ -9,6 +9,7 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 
+import importlib
 import json
 
 from enum import IntEnum
@@ -37,7 +38,7 @@ class Jsonify:
 
     def _jsonify_to_dict(self):
         return {
-            CLASS_KEY : self.__class__._jsonify_classname(),
+            CLASS_KEY: self.__class__._jsonify_classname(),
             MEMBER_KEY: self._jsonify_traverse_dict(self.__dict__)
         }
 
@@ -61,9 +62,17 @@ class Jsonify:
             return value
 
     @staticmethod
+    def _check_loaded(clsname):
+        if clsname in Jsonify._jsonify_registry:
+            return
+
+        importlib.import_module('.'.join(clsname.split('.')[:-1]))
+
+    @staticmethod
     def _jsonify_from_jsonobj(obj):
         if isinstance(obj, dict):
             if CLASS_KEY in obj:
+                Jsonify._check_loaded(obj[CLASS_KEY])
                 return Jsonify._jsonify_construct(obj)
             else:
                 return {key: Jsonify._jsonify_from_jsonobj(value)
