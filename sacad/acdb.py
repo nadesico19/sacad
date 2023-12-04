@@ -446,7 +446,7 @@ class Hatch(Entity):
 
 @dataclass
 class Curve(Entity):
-    pass
+    area: Optional[float] = None
 
 
 @dataclass

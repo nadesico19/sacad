@@ -58,6 +58,9 @@ namespace SacadMgd
     {
         public List<PyWrapper<Entity>> entities;
 
+        public void AddEntity(PyWrapper<Entity> entity) =>
+            entities?.Add(entity);
+
         // TODO override
     }
 

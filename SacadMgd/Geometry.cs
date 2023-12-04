@@ -9,6 +9,7 @@
  * See the Mulan PubL v2 for more details.
  */
 
+using System;
 using Newtonsoft.Json;
 using AcGe = Autodesk.AutoCAD.Geometry;
 
@@ -86,11 +87,16 @@ namespace SacadMgd
             { __mbr__ = new[] { 0.0, 0, 0 } };
     }
 
-    public sealed class Matrix3d
+    public sealed class Matrix3d : ICloneable
     {
         public string __cls__ = "sacad.acge.Matrix3d";
         public double[] __mbr__;
 
         public AcGe.Matrix3d ToMatrix3d() => new AcGe.Matrix3d(__mbr__);
+
+        public Matrix3d Clone() => new Matrix3d
+            { __mbr__ = __mbr__?.Clone() as double[] };
+
+        object ICloneable.Clone() => Clone();
     }
 }

@@ -68,7 +68,7 @@ namespace SacadMgd
     }
 
     [PyType("sacad.acdb.DBObject")]
-    public class DBObject
+    public class DBObject : ICloneable
     {
         public long? id;
 
@@ -80,6 +80,9 @@ namespace SacadMgd
             id = obj.ObjectId.OldIdPtr.ToInt64();
             return this;
         }
+
+        public virtual DBObject Clone() => (DBObject)MemberwiseClone();
+        object ICloneable.Clone() => Clone();
     }
 
     [PyType("sacad.acdb.Entity")]
@@ -148,6 +151,15 @@ namespace SacadMgd
 
             return base.FromArx(obj, db);
         }
+
+        public override DBObject Clone()
+        {
+            var cloned = (Entity)base.Clone();
+            cloned.matrix = matrix?.Clone();
+            return cloned;
+        }
+
+        public Entity CloneEntity() => (Entity)Clone();
 
         public static Entity Convert(AcDb.Entity arxEntity, AcDb.Database db)
         {

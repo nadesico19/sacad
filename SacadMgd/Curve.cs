@@ -22,6 +22,16 @@ namespace SacadMgd
     [PyType("sacad.acdb.Curve")]
     public class Curve : Entity
     {
+        public double? area;
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var curve = (AcDb.Curve)obj;
+
+            area = curve.Area;
+
+            return base.FromArx(obj, db);
+        }
     }
 
     [ArxEntity(typeof(AcDb.Arc))]

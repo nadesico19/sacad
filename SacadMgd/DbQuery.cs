@@ -337,6 +337,8 @@ namespace SacadMgd
                 result.db.__mbr__.block_table =
                     result.db.__mbr__.block_table ??
                     new Dictionary<string, PyWrapper<BlockTableRecord>>();
+
+                // TODO
             }
 
             if ((table_flags & (int)TableFlags.TextStyle) != 0)
@@ -392,7 +394,28 @@ namespace SacadMgd
 
         private void TestEntities(AcDb.Database db, DbSelectResult result)
         {
-            // TODO
+            result.db = result.db ?? PyWrapper<Database>.Create(new Database());
+
+            var modelSpace = database?.__mbr__?.GetModelSpace();
+            if (!(modelSpace?.entities?.Count > 0)) return;
+
+            var resultModelSpace = result.db.__mbr__.GetModelSpace();
+
+            foreach (var entity in modelSpace.entities)
+            {
+                using (var arxEntity = entity.__mbr__.ToArx(null, db))
+                {
+                    (arxEntity as AcDb.Dimension)?.GenerateLayout();
+                    (arxEntity as AcDb.DBText)?.AdjustAlignment(db);
+                    // TODO
+
+                    var newEntity = entity.__mbr__.CloneEntity();
+                    newEntity.FromArx(arxEntity, db);
+
+                    resultModelSpace.AddEntity(
+                        PyWrapper<Entity>.Create(newEntity));
+                }
+            }
         }
 
         private void GetUserSelection(AcDb.Database db, DbSelectResult result)
