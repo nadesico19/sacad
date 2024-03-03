@@ -26,7 +26,8 @@ def main(cad: ac.Acad):
 
 def draw_golden_section_arcs(center: ac.Vector2d = ac.Vector2d(),
                              direction: ac.Vector2d = ac.Vector2d(100),
-                             num: int = 10):
+                             num: int = 10,
+                             tolerance: float = 1e-6):
     for i in range(num):
         yield draw_simple_polygon(gen_rect_vertices(center, direction))
 
@@ -37,7 +38,7 @@ def draw_golden_section_arcs(center: ac.Vector2d = ac.Vector2d(),
         dot_prod = ac.Vector2d.xaxis() * direction.normalize()
 
         start_angle = math.acos(dot_prod) * (
-            cross_prod / abs(cross_prod) if cross_prod != 0 else 1)
+            cross_prod / abs(cross_prod) if abs(cross_prod) > tolerance else 1)
 
         yield ac.Arc.new_vec2(center, radius, start_angle,
                               start_angle + math.pi / 2)
