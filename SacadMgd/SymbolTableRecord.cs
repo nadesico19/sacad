@@ -640,6 +640,7 @@ namespace SacadMgd
             obj = obj ?? new AcDb.TextStyleTableRecord();
             var textStyle = (AcDb.TextStyleTableRecord)obj;
 
+            var isSystemFont = false;
             if (font?.__mbr__ != null)
             {
                 textStyle.Font = new AcGi.FontDescriptor(
@@ -648,11 +649,12 @@ namespace SacadMgd
                     font.__mbr__.italic ?? false,
                     font.__mbr__.character_set ?? 0,
                     font.__mbr__.pitch_and_family ?? 0);
+                isSystemFont = true;
             }
 
-            if (!string.IsNullOrEmpty(big_font_file_name))
+            if (!isSystemFont && !string.IsNullOrEmpty(big_font_file_name))
                 textStyle.BigFontFileName = big_font_file_name;
-            if (!string.IsNullOrEmpty(file_name))
+            if (!isSystemFont && !string.IsNullOrEmpty(file_name))
                 textStyle.FileName = file_name;
             if (flag_bits.HasValue)
                 textStyle.FlagBits = Convert.ToByte(flag_bits.Value);
