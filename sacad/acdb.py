@@ -45,12 +45,13 @@ __all__ = [
     'TextAttachmentDirection',
     'DBObject',
     'Entity',
-    # 'BlockReference',
+    'BlockReference',
     'DBText',
     'MText',
     'MLeader',
     'HatchLoop',
     'Hatch',
+    'Shape',
     'Curve',
     'Arc',
     'Circle',
@@ -276,9 +277,14 @@ class Entity(DBObject):
         self.matrix = matrix if self.matrix is None else matrix @ self.matrix
 
 
-# @dataclass
-# class BlockReference(Entity):
-#     pass
+@dataclass
+class BlockReference(Entity):
+    name: Optional[str] = None
+    position: Optional[Vector3d] = None
+    rotation: Optional[float] = None
+    unit_factors: Optional[float] = None
+    # TODO other properties
+
 
 _dbtext_attachment_modes = {
     AttachmentPoint.BASE_ALIGN:
@@ -442,6 +448,36 @@ class Hatch(Entity):
     pattern_scale: Optional[float] = None
     pattern_type: Optional[HatchPatternType] = None
     hatch_loops: Optional[List[HatchLoop]] = None
+
+
+@dataclass
+class Shape(Entity):
+    name: Optional[str] = None
+    normal: Optional[Vector3d] = None
+    oblique: Optional[float] = None
+    position: Optional[Vector3d] = None
+    rotation: Optional[float] = None
+    shape_number: Optional[int] = None
+    size: Optional[float] = None
+    thickness: Optional[float] = None
+    width_factor: Optional[float] = None
+
+    # Instead of ShapeIndex/StyleId, which is type of ObjectId,
+    # we use symbol name to reference the text style table record.
+    style_name: Optional[str] = None
+
+    @staticmethod
+    def new(shape_name: str, name: str,
+            x: Number, y: Number, z: Number, size: Number,
+            rotation: Number = 0.0, width_factor: Number = 1.0, **kwargs
+            ) -> 'Shape':
+        return Shape(style_name=shape_name,
+                     name=name,
+                     position=Vector3d(x, y, z),
+                     size=size,
+                     rotation=rotation,
+                     width_factor=width_factor,
+                     **kwargs)
 
 
 @dataclass
@@ -2091,10 +2127,13 @@ class Extents3d(Jsonify):
 # Syntactic sugar of @decorator may somehow break the code completion of IDE
 # (e.g. PyCharm) on @dataclass.
 
+BlockReference = csharp_polymorphic_type(
+    "SacadMgd.BlockReference, SacadMgd")(BlockReference)
 DBText = csharp_polymorphic_type("SacadMgd.DBText, SacadMgd")(DBText)
 MText = csharp_polymorphic_type("SacadMgd.MText, SacadMgd")(MText)
 MLeader = csharp_polymorphic_type("SacadMgd.MLeader, SacadMgd")(MLeader)
 Hatch = csharp_polymorphic_type("SacadMgd.Hatch, SacadMgd")(Hatch)
+Shape = csharp_polymorphic_type("SacadMgd.Shape, SacadMgd")(Shape)
 
 Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
 Circle = csharp_polymorphic_type("SacadMgd.Circle, SacadMgd")(Circle)

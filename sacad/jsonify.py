@@ -13,7 +13,7 @@ import importlib
 import json
 
 from enum import IntEnum
-from typing import Dict, Set, TypeVar, Union
+from typing import Any, Dict, Set, TypeVar, Union
 
 from sacad.error import JsonifyError
 
@@ -113,6 +113,13 @@ class Jsonify:
     @classmethod
     def deserialize(cls: T, json_data: Union[str, bytes, bytearray]) -> T:
         return Jsonify._jsonify_from_jsonobj(json.loads(json_data))
+
+    def to_jsonify_dict(self) -> Dict[str, Any]:
+        return self._jsonify_to_dict()
+
+    @classmethod
+    def from_jsonify_dict(cls: T, json_dict: Dict[str, Any]) -> T:
+        return Jsonify._jsonify_from_jsonobj(json_dict)
 
     @staticmethod
     def register_excluded_attribute(name: str):

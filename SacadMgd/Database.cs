@@ -196,6 +196,48 @@ namespace SacadMgd
         }
     }
 
+
+    [ArxEntity(typeof(AcDb.BlockReference))]
+    [PyType("sacad.acdb.BlockReference")]
+    public class BlockReference : Entity
+    {
+        public string name;
+        public Vector3d position;
+        public double? rotation;
+        public Vector3d scale_factors;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? new AcDb.BlockReference(
+                Vector3d.Origin.ToPoint3d(),
+                db.GetBlock(name).ObjectId);
+            var blockRef = (AcDb.BlockReference)obj;
+
+            if (position != null) blockRef.Position = position.ToPoint3d();
+            if (rotation.HasValue) blockRef.Rotation = rotation.Value;
+            if (scale_factors != null)
+                blockRef.ScaleFactors = new AcGe.Scale3d(
+                    scale_factors.X, scale_factors.Y, scale_factors.Z);
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var blockRef = (AcDb.BlockReference)obj;
+
+            name = blockRef.Name;
+            position = blockRef.Position;
+            rotation = Util.ToOptional(blockRef.Rotation);
+            scale_factors = new AcGe.Vector3d(
+                blockRef.ScaleFactors.X,
+                blockRef.ScaleFactors.Y,
+                blockRef.ScaleFactors.Z);
+
+            return base.FromArx(obj, db);
+        }
+    }
+
     [ArxEntity(typeof(AcDb.DBText))]
     [PyType("sacad.acdb.DBText")]
     public sealed class DBText : Entity
@@ -644,6 +686,70 @@ namespace SacadMgd
             }
 
             hatch_loops = hatchLoops.ToArray();
+
+            return base.FromArx(obj, db);
+        }
+    }
+
+    [ArxEntity(typeof(AcDb.Shape))]
+    [PyType("sacad.acdb.Shape")]
+    public sealed class Shape : Entity
+    {
+        public string name;
+        public Vector3d normal;
+        public double? oblique;
+        public Vector3d position;
+        public double? rotation;
+        public short? shape_number;
+        public double? size;
+        public double? thickness;
+        public double? width_factor;
+        public string style_name;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.Shape>(db);
+            var shape = (AcDb.Shape)obj;
+            db.AddToModelSpace(shape);
+
+            if (name != null) shape.Name = name;
+            if (normal != null) shape.Normal = normal.ToVector3d();
+            if (oblique.HasValue) shape.Oblique = oblique.Value;
+            if (position != null) shape.Position = position.ToPoint3d();
+            if (rotation.HasValue) shape.Rotation = rotation.Value;
+            if (shape_number.HasValue) shape.ShapeNumber = shape_number.Value;
+            if (size.HasValue) shape.Size = size.Value;
+            if (thickness.HasValue) shape.Thickness = thickness.Value;
+            if (width_factor.HasValue) shape.WidthFactor = width_factor.Value;
+            if (style_name != null)
+            {
+                var shapeRecord = db.GetShapeStyle(style_name);
+                if (shapeRecord != null) shape.StyleId = shapeRecord.ObjectId;
+            }
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var shape = (AcDb.Shape)obj;
+            var trans = db.TransactionManager.TopTransaction;
+
+            name = shape.Name;
+            normal = shape.Normal;
+            oblique = Util.ToOptional(shape.Oblique);
+            position = shape.Position;
+            rotation = Util.ToOptional(shape.Rotation);
+            shape_number = Util.ToOptional(shape.ShapeNumber);
+            size = Util.ToOptional(shape.Size);
+            thickness = Util.ToOptional(shape.Thickness);
+            width_factor = Util.ToOptional(shape.WidthFactor);
+            if (shape.StyleId.IsValid)
+            {
+                var symbol = (AcDb.TextStyleTableRecord)trans.GetObject(
+                    shape.StyleId, AcDb.OpenMode.ForRead);
+                style_name = symbol.Name;
+            }
 
             return base.FromArx(obj, db);
         }
