@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcGi = Autodesk.AutoCAD.GraphicsInterface;
 
@@ -61,7 +60,60 @@ namespace SacadMgd
         public void AddEntity(PyWrapper<Entity> entity) =>
             entities?.Add(entity);
 
-        // TODO override
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? new AcDb.BlockTableRecord();
+            var block = (AcDb.BlockTableRecord)obj;
+
+            foreach (var entity in entities)
+            {
+                try
+                {
+                    if (entity.__mbr__ is Hatch)
+                        ((Hatch)entity.__mbr__).ToArx(null, db, block);
+                    else
+                        block.AppendEntity(
+                            (AcDb.Entity)entity.__mbr__.ToArx(null, db));
+                }
+                catch (Exception ex)
+                {
+                    Util.ConsoleWriteLine(
+                        $"{entity.__cls__} insertion to block {name} " +
+                        $"failed: {ex.Message}");
+                }
+            }
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var block = (AcDb.BlockTableRecord)obj;
+            var trans = db.TransactionManager.TopTransaction;
+
+            entities = entities ?? new List<PyWrapper<Entity>>();
+            foreach (var eid in block)
+            {
+                if (!eid.IsValid) continue;
+
+                var arxEntity = (AcDb.Entity)trans.GetObject(
+                    eid, AcDb.OpenMode.ForRead);
+
+                var entity = Entity.Convert(arxEntity, db);
+                if (entity == null) continue;
+
+                entities.Add(PyWrapper<Entity>.Create(entity));
+            }
+
+            return base.FromArx(obj, db);
+        }
+
+        public override AcDb.SymbolTableRecord GetFromSymbolTable(
+            AcDb.Database db) => db.GetBlock(name);
+
+        public override AcDb.ObjectId AddToSymbolTable(
+            AcDb.SymbolTableRecord symbol, AcDb.Database db) =>
+            db.AddBlock((AcDb.BlockTableRecord)symbol);
     }
 
     [PyType("sacad.acdb.DimStyleTableRecord")]

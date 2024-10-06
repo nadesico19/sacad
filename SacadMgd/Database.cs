@@ -500,12 +500,18 @@ namespace SacadMgd
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
+            return ToArx(obj, db, null);
+        }
+
+        public AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db,
+            AcDb.BlockTableRecord block)
+        {
             obj = obj ?? New<AcDb.Hatch>(db);
             var hatch = (AcDb.Hatch)obj;
 
             if (hatch_object_type == AcDb.HatchObjectType.HatchObject)
             {
-                GenHatch(hatch, db);
+                GenHatch(hatch, db, block);
             }
 
             // TODO gradient type
@@ -513,7 +519,8 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        private void GenHatch(AcDb.Hatch hatch, AcDb.Database db)
+        private void GenHatch(AcDb.Hatch hatch, AcDb.Database db,
+            AcDb.BlockTableRecord block)
         {
             if (!(hatch_loops?.Length > 0)) return;
 
@@ -526,11 +533,12 @@ namespace SacadMgd
 
             hatch.SetHatchPattern(
                 pattern_type ?? AcDb.HatchPatternType.PreDefined, pattern_name);
-            db.AddToModelSpace(hatch);
+            if (block == null) db.AddToModelSpace(hatch);
+            else block.AppendEntity(hatch);
 
             if (pattern_angle.HasValue && pattern_angle.Value != 0)
                 hatch.PatternAngle = pattern_angle.Value;
-            if (associative.HasValue)
+            if (associative.HasValue && block == null)
                 hatch.Associative = associative.Value;
 
             foreach (var loop in hatch_loops.Select(e => e.__mbr__))

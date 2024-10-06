@@ -20,6 +20,8 @@ using AcGe = Autodesk.AutoCAD.Geometry;
 
 namespace SacadMgd
 {
+    using BlockTable = Dictionary<string, PyWrapper<BlockTableRecord>>;
+
     public abstract class DbQuery
     {
         public string query_type;
@@ -59,9 +61,8 @@ namespace SacadMgd
                     InsertSymbol(db, clientDb?.linetype_table, result);
                     InsertSymbol(db, clientDb?.layer_table, result);
                     InsertSymbol(db, clientDb?.dim_style_table, result);
-
-                    InsertDictItem(db, clientDb?.m_leader_style_dict,
-                        result);
+                    InsertDictItem(db, clientDb?.m_leader_style_dict, result);
+                    InsertBlocks(db, clientDb?.block_table, trans, result);
 
                     if (prompt_insertion_point == true)
                     {
@@ -193,6 +194,56 @@ namespace SacadMgd
             }
         }
 
+        private void InsertBlocks(AcDb.Database db, BlockTable blockTable,
+            AcDb.Transaction trans, DbInsertResult result)
+        {
+            foreach (var block in blockTable.Values)
+            {
+                try
+                {
+                    var oldBlock = (AcDb.BlockTableRecord)block.__mbr__
+                        .GetFromSymbolTable(db);
+                    if (oldBlock != null && upsert != true) continue;
+
+                    // MEMO: Something went wrong when trying to remove and 
+                    // re-append all entities inside a block. It caused a block
+                    // to be invalid, neither insertable nor editable.
+                    // Finally, I implemented `upsert` by re-creation and
+                    // replacement of the whole block.
+                    var refIds = oldBlock?.GetBlockReferenceIds(false, true);
+                    if (oldBlock != null)
+                    {
+                        oldBlock.UpgradeOpen();
+                        oldBlock.Erase();
+                    }
+
+                    var newBlock = (AcDb.BlockTableRecord)block.__mbr__
+                        .ToArx(null, db);
+                    var newBlkId = block.__mbr__.AddToSymbolTable(newBlock, db);
+                    trans.AddNewlyCreatedDBObject(newBlock, true);
+
+                    if (refIds?.Count > 0)
+                    {
+                        foreach (AcDb.ObjectId eid in refIds)
+                        {
+                            var blkRef = (AcDb.BlockReference)trans.GetObject(
+                                eid, AcDb.OpenMode.ForWrite);
+                            blkRef.BlockTableRecord = newBlkId;
+                            blkRef.DowngradeOpen();
+                        }
+                    }
+
+                    result.num_inserted++;
+                }
+                catch (Exception ex)
+                {
+                    Util.ConsoleWriteLine(
+                        $"{block.__cls__} insertion failed: {ex.Message}");
+                    result.num_failure++;
+                }
+            }
+        }
+
         private void PromptInsertionPoint(AcDb.Database db)
         {
             // ReSharper disable once AccessToStaticMemberViaDerivedType
@@ -287,6 +338,7 @@ namespace SacadMgd
         public Mode? mode;
         public int? table_flags;
         public bool? explode_blocks;
+        public List<string> block_names;
 
         public override Result Execute()
         {
@@ -390,6 +442,43 @@ namespace SacadMgd
                 SelectDictItems(db, db.MLeaderStyleDictionaryId,
                     result.db.__mbr__.m_leader_style_dict);
             }
+
+            if ((table_flags & (int)TableFlags.Blocks) != 0
+                && block_names != null)
+            {
+                result.db.__mbr__.block_table =
+                    result.db.__mbr__.block_table ??
+                    new Dictionary<string, PyWrapper<BlockTableRecord>>();
+
+                var trans = db.TransactionManager.TopTransaction;
+                var blkTbl = (AcDb.SymbolTable)trans.GetObject(
+                    db.BlockTableId, AcDb.OpenMode.ForRead);
+                foreach (var blkId in blkTbl)
+                {
+                    var block = (AcDb.BlockTableRecord)trans.GetObject(
+                        blkId, AcDb.OpenMode.ForRead);
+                    if (block.Name.StartsWith("*")
+                        || block.Name.StartsWith("_"))
+                    {
+                        continue;
+                    }
+
+                    if (block_names.Count > 0
+                        && block_names.Contains(block.Name))
+                    {
+                        SelectBlock(db, block, result.db.__mbr__.block_table);
+                    }
+                }
+            }
+        }
+
+        private static void SelectBlock(AcDb.Database db,
+            AcDb.BlockTableRecord arxBlock, BlockTable blockTable)
+        {
+            var block = new BlockTableRecord();
+            block.FromArx(arxBlock, db);
+            blockTable[arxBlock.Name] =
+                PyWrapper<BlockTableRecord>.Create(block);
         }
 
         private void TestEntities(AcDb.Database db, DbSelectResult result)
@@ -530,6 +619,7 @@ namespace SacadMgd
             Layer = 0x08,
             DimStyle = 0x10,
             MLeaderStyle = 0x20,
+            Blocks = 0x40,
         }
     }
 }

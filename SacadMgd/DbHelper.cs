@@ -202,20 +202,26 @@ namespace SacadMgd
             return table.Add(block);
         }
 
-        public static AcDb.ObjectId AddToModelSpace(this AcDb.Database db,
-            AcDb.Entity entity)
+        public static AcDb.ObjectId AddToBlock(this AcDb.Database db,
+            string blockName, AcDb.Entity entity)
         {
-            var modelSpace = db.GetBlock(AcDb.BlockTableRecord.ModelSpace);
+            var block = db.GetBlock(blockName);
 
             try
             {
-                modelSpace.UpgradeOpen();
-                return modelSpace.AppendEntity(entity);
+                block.UpgradeOpen();
+                return block.AppendEntity(entity);
             }
             finally
             {
-                modelSpace.DowngradeOpen();
+                block.DowngradeOpen();
             }
+        }
+
+        public static AcDb.ObjectId AddToModelSpace(this AcDb.Database db,
+            AcDb.Entity entity)
+        {
+            return AddToBlock(db, AcDb.BlockTableRecord.ModelSpace, entity);
         }
     }
 }

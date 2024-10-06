@@ -60,6 +60,7 @@ class TableFlags(IntEnum):
     LAYER = 0x08
     DIM_STYLE = 0x10
     M_LEADER_STYLE = 0x20
+    BLOCKS = 0x40
 
 
 @dataclass
@@ -80,7 +81,17 @@ class DBInsertQuery(DBQuery):
 class DBSelectQuery(DBQuery):
     mode: Optional[SelectMode] = None
     table_flags: Optional[int] = None
+
+    # SelectMode.GET_TABLES (only if TableFlags.MODEL_SPACE is specified) and
+    # SelectMode.GET_USER_SELECTION will observe this field to explode block
+    # references while extracting entities.
     explode_blocks: Optional[bool] = None
+
+    # When TableFlags.BLOCKS is specified, use this field to filter symbols
+    # selected from the block table. To select all symbols (except that starts
+    # with "*" or "_"), use an empty list. If None is used, nothing will be
+    # selected.
+    block_names: Optional[List[str]] = None
 
 
 class DBOperator:
@@ -117,6 +128,10 @@ class DBInsert(DBOperator):
     def model_space(self) -> 'ListInsertProxy':
         return ListInsertProxy(
             self._query.database.get_block(MODEL_SPACE).entities)
+
+    @cached_property
+    def block_table(self) -> 'DictInsertProxy':
+        return DictInsertProxy(self._query.database.block_table)
 
     @cached_property
     def dim_style_table(self) -> 'DictInsertProxy':
