@@ -282,7 +282,7 @@ class BlockReference(Entity):
     name: Optional[str] = None
     position: Optional[Vector3d] = None
     rotation: Optional[float] = None
-    unit_factors: Optional[float] = None
+    scale_factors: Optional[Vector3d] = None
     # TODO other properties
 
 
@@ -2097,7 +2097,7 @@ class Database(Jsonify):
 
     def get_block(self, name):
         if name not in self.block_table:
-            self.block_table[name] = BlockTableRecord()
+            self.block_table[name] = BlockTableRecord(name=name)
         return self.block_table[name]
 
 

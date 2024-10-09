@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AcAp = Autodesk.AutoCAD.ApplicationServices;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 using AcEi = Autodesk.AutoCAD.EditorInput;
@@ -197,7 +198,10 @@ namespace SacadMgd
         private void InsertBlocks(AcDb.Database db, BlockTable blockTable,
             AcDb.Transaction trans, DbInsertResult result)
         {
-            foreach (var block in blockTable.Values)
+            foreach (var block in blockTable.Values.Where(
+                         blk => blk.__mbr__.name != null
+                                && !blk.__mbr__.name.StartsWith("*")
+                                && !blk.__mbr__.name.StartsWith("_")))
             {
                 try
                 {
@@ -382,6 +386,7 @@ namespace SacadMgd
 
         private void GetTable(AcDb.Database db, DbSelectResult result)
         {
+            var trans = db.TransactionManager.TopTransaction;
             result.db = result.db ?? PyWrapper<Database>.Create(new Database());
 
             if ((table_flags & (int)TableFlags.ModelSpace) != 0)
@@ -390,7 +395,8 @@ namespace SacadMgd
                     result.db.__mbr__.block_table ??
                     new Dictionary<string, PyWrapper<BlockTableRecord>>();
 
-                // TODO
+                SelectBlock(db, db.GetBlock(AcDb.BlockTableRecord.ModelSpace),
+                    result.db.__mbr__.block_table);
             }
 
             if ((table_flags & (int)TableFlags.TextStyle) != 0)
@@ -450,7 +456,6 @@ namespace SacadMgd
                     result.db.__mbr__.block_table ??
                     new Dictionary<string, PyWrapper<BlockTableRecord>>();
 
-                var trans = db.TransactionManager.TopTransaction;
                 var blkTbl = (AcDb.SymbolTable)trans.GetObject(
                     db.BlockTableId, AcDb.OpenMode.ForRead);
                 foreach (var blkId in blkTbl)
@@ -477,8 +482,16 @@ namespace SacadMgd
         {
             var block = new BlockTableRecord();
             block.FromArx(arxBlock, db);
-            blockTable[arxBlock.Name] =
-                PyWrapper<BlockTableRecord>.Create(block);
+
+            // *MODEL_SPACE needs special treatment for case-insensitivity。
+            var blockName = arxBlock.Name;
+            if (string.Equals(blockName, AcDb.BlockTableRecord.ModelSpace,
+                    StringComparison.CurrentCultureIgnoreCase))
+            {
+                blockName = block.name = AcDb.BlockTableRecord.ModelSpace;
+            }
+
+            blockTable[blockName] = PyWrapper<BlockTableRecord>.Create(block);
         }
 
         private void TestEntities(AcDb.Database db, DbSelectResult result)

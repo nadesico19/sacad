@@ -584,6 +584,7 @@ namespace SacadMgd
             new AcDb.DimStyleTableRecord();
     }
 
+    [ArxEntity(typeof(AcDb.AlignedDimension))]
     [PyType("sacad.acdb.AlignedDimension")]
     public sealed class AlignedDimension : Dimension
     {
@@ -618,6 +619,7 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.ArcDimension))]
     [PyType("sacad.acdb.ArcDimension")]
     public sealed class ArcDimension : Dimension
     {
@@ -694,6 +696,7 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.DiametricDimension))]
     [PyType("sacad.acdb.DiametricDimension")]
     public sealed class DiametricDimension : Dimension
     {
@@ -726,6 +729,7 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.LineAngularDimension2))]
     [PyType("sacad.acdb.LineAngularDimension2")]
     public sealed class LineAngularDimension2 : Dimension
     {
@@ -765,6 +769,7 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.Point3AngularDimension))]
     [PyType("sacad.acdb.Point3AngularDimension")]
     public sealed class Point3AngularDimension : Dimension
     {
@@ -802,6 +807,7 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.RadialDimension))]
     [PyType("sacad.acdb.RadialDimension")]
     public sealed class RadialDimension : Dimension
     {
@@ -833,6 +839,7 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.RadialDimensionLarge))]
     [PyType("sacad.acdb.RadialDimensionLarge")]
     public sealed class RadialDimensionLarge : Dimension
     {
@@ -871,6 +878,7 @@ namespace SacadMgd
         }
     }
 
+    [ArxEntity(typeof(AcDb.RotatedDimension))]
     [PyType("sacad.acdb.RotatedDimension")]
     public sealed class RotatedDimension : Dimension
     {
