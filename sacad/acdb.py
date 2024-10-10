@@ -52,6 +52,7 @@ __all__ = [
     'HatchLoop',
     'Hatch',
     'Shape',
+    'Solid',
     'Curve',
     'Arc',
     'Circle',
@@ -478,6 +479,11 @@ class Shape(Entity):
                      rotation=rotation,
                      width_factor=width_factor,
                      **kwargs)
+
+
+@dataclass
+class Solid(Entity):
+    points: Optional[List[Vector3d]] = None
 
 
 @dataclass
@@ -2134,6 +2140,7 @@ MText = csharp_polymorphic_type("SacadMgd.MText, SacadMgd")(MText)
 MLeader = csharp_polymorphic_type("SacadMgd.MLeader, SacadMgd")(MLeader)
 Hatch = csharp_polymorphic_type("SacadMgd.Hatch, SacadMgd")(Hatch)
 Shape = csharp_polymorphic_type("SacadMgd.Shape, SacadMgd")(Shape)
+Solid = csharp_polymorphic_type("SacadMgd.Solid, SacadMgd")(Solid)
 
 Arc = csharp_polymorphic_type("SacadMgd.Arc, SacadMgd")(Arc)
 Circle = csharp_polymorphic_type("SacadMgd.Circle, SacadMgd")(Circle)

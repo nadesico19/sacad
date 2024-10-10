@@ -375,7 +375,19 @@ namespace SacadMgd
             return base.ToArx(obj, db);
         }
 
-        // TODO
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var mText = (AcDb.MText)obj;
+
+            attachment = mText.Attachment;
+            contents = mText.Contents;
+            location = mText.Location;
+            text_height = mText.TextHeight;
+            text_style_name = mText.TextStyleName;
+            width = mText.Width;
+
+            return base.FromArx(obj, db);
+        }
     }
 
     [ArxEntity(typeof(AcDb.MLeader))]
@@ -758,6 +770,39 @@ namespace SacadMgd
                     shape.StyleId, AcDb.OpenMode.ForRead);
                 style_name = symbol.Name;
             }
+
+            return base.FromArx(obj, db);
+        }
+    }
+
+    [ArxEntity(typeof(AcDb.Solid))]
+    [PyType("sacad.acdb.Solid")]
+    public sealed class Solid : Entity
+    {
+        public List<Vector3d> points;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? New<AcDb.Solid>(db);
+            var solid = (AcDb.Solid)obj;
+
+            for (short i = 0; i < 4; i++)
+            {
+                if (points?.Count > i)
+                    solid.SetPointAt(i, points[i].ToPoint3d());
+            }
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var solid = (AcDb.Solid)obj;
+
+            points = points ?? new List<Vector3d>();
+            points.Clear();
+
+            for (short i = 0; i < 4; i++) points.Add(solid.GetPointAt(i));
 
             return base.FromArx(obj, db);
         }
