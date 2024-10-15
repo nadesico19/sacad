@@ -42,12 +42,11 @@ class Session:
         self._com = ComAcad(env.acad_progid(self._name))
         self._com.show()
 
-        dllpath = env.find_dll(self._name)
-        if not dllpath:
-            raise AcadNotSupportedError(
-                f'SacadMgd.dll for AutoCAD {self._name} is not found.')
-
         if netload:
+            dllpath = env.find_dll(self._name)
+            if not dllpath:
+                raise AcadNotSupportedError(
+                    f'SacadMgd.dll for AutoCAD {self._name} is not found.')
             self._com.netload(dllpath)
 
         self._req.open(self._host, self._port,

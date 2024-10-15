@@ -306,6 +306,9 @@ namespace SacadMgd
                 if (o.dimtzin.HasValue) dim.Dimtzin = o.dimtzin.Value;
                 if (o.dimupt.HasValue) dim.Dimupt = o.dimupt.Value;
                 if (o.dimzin.HasValue) dim.Dimzin = o.dimzin.Value;
+
+                if (!string.IsNullOrEmpty(o.dimtxsty))
+                    dim.TextStyleId = db.GetTextStyle(o.dimtxsty).ObjectId;
             }
 
             return base.ToArx(obj, db);
@@ -563,6 +566,13 @@ namespace SacadMgd
                 GetOverrides().dimupt = dim.Dimupt;
             if (dim.Dimzin != dimStyle.Dimzin)
                 GetOverrides().dimzin = dim.Dimzin;
+
+            if (dim.TextStyleId.IsValid && dim.TextStyleId != dimStyle.Dimtxsty)
+            {
+                var symbol = (AcDb.SymbolTableRecord)trans.GetObject(
+                    dimStyle.Dimtxsty, AcDb.OpenMode.ForRead);
+                GetOverrides().dimtxsty = symbol.Name;
+            }
 
             return base.FromArx(obj, db);
         }
