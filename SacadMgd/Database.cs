@@ -605,16 +605,9 @@ namespace SacadMgd
                             var start_angle = arc.start_angle ?? 0;
                             var end_angle = arc.end_angle ?? 0;
 
-                            var start_ponit = center + radius
-                                * AcGe.Vector2d.XAxis.RotateBy(start_angle);
-                            var end_ponit = center + radius
-                                * AcGe.Vector2d.XAxis.RotateBy(end_angle);
-                            var point_on_arc = center + radius
-                                * AcGe.Vector2d.XAxis.RotateBy(
-                                    (start_angle + end_angle) / 2);
-
-                            curve2d = new AcGe.CircularArc2d(
-                                start_ponit, point_on_arc, end_ponit);
+                            curve2d = new AcGe.CircularArc2d(center, radius,
+                                start_angle, end_angle, AcGe.Vector2d.XAxis,
+                                start_angle >= end_angle);
                         }
                         // TODO
 
