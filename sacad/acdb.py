@@ -404,6 +404,7 @@ class MText(Entity):
     text_height: Optional[float] = None
     text_style_name: Optional[str] = None
     width: Optional[float] = None
+    line_spacing_factor: Optional[float] = None
 
     @staticmethod
     def new(x: Number, y: Number, contents: str, text_height: Number = None,

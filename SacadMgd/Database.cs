@@ -353,6 +353,7 @@ namespace SacadMgd
         public double? text_height;
         public string text_style_name;
         public double? width;
+        public double? line_spacing_factor;
 
         public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
         {
@@ -371,6 +372,8 @@ namespace SacadMgd
             }
 
             if (width.HasValue) mText.Width = width.Value;
+            if (line_spacing_factor.HasValue)
+                mText.LineSpacingFactor = line_spacing_factor.Value;
 
             return base.ToArx(obj, db);
         }
@@ -385,6 +388,7 @@ namespace SacadMgd
             text_height = mText.TextHeight;
             text_style_name = mText.TextStyleName;
             width = mText.Width;
+            line_spacing_factor = mText.LineSpacingFactor;
 
             return base.FromArx(obj, db);
         }
