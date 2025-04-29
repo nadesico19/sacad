@@ -74,11 +74,16 @@ As mentioned previously, there is a library implemented in C#, which based on
 ObjectARX's Managed Wrapper Classes. Information related to building this
 library is described in the [building instructions](BUILDING.md).
 
-# Roadmap
+# ~~Roadmap~~
 
-In the first phase, I will focus on the CRUD of AutoCAD's document database,
-which is essential for drawing and modifying tasks. More features like document
-management, layout, printing, etc, will come in later phases.
+~~In the first phase, I will focus on the CRUD of AutoCAD's document database,~~
+~~which is essential for drawing and modifying tasks. More features like document~[]()~
+~~management, layout, printing, etc, will come in later phases.~~
 
-There is a [feature list](FEATURES.md), including what is already implemented,
-or in process, or in the to-do list.
+~~There is a [feature list](FEATURES.md), including what is already implemented,~~
+~~or in process, or in the to-do list.~~
+
+# Apology (2025/4)
+
+Due to personal work commitments, it will be challenging to maintain planned and
+consistent feature updates for this project.
