@@ -9,8 +9,9 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 
+import threading
 import uuid
-
+from asyncio import Future
 from typing import Callable, Optional
 
 from sacad import env
@@ -20,6 +21,7 @@ from sacad.error import (
     AcadConnectionError,
     AcadNotFoundError,
     AcadNotSupportedError,
+    SessionError,
 )
 from sacad.io import Requester
 
@@ -35,6 +37,9 @@ class Session:
 
         self._req = Requester()
         self._com: Optional[ComAcad] = None
+
+        self._fut: Optional[Future] = None
+        self._fut_lock = threading.Lock()
 
         self._precheck()
 
@@ -80,6 +85,16 @@ class Session:
     def doc_operation(self, opcmd: str):
         return self._request(opcmd, self._com.docop)
 
+    def cancel_request(self):
+        with self._fut_lock:
+            try:
+                if self._fut is not None:
+                    self._fut.cancel()
+            except:
+                pass
+            finally:
+                self._fut = None
+
     @property
     def acad_name(self):
         return self._name
@@ -106,9 +121,17 @@ class Session:
                 f'AutoCAD {self._name} is not found in the registry.')
 
     def _request(self, msg: str, cmd: Callable):
-        fut = self._req.request(msg)
-        cmd(self._skey)
-        return fut.result()
+        try:
+            with self._fut_lock:
+                if self._fut is not None:
+                    raise SessionError(
+                        'Session cannot send request concurrently.')
+                self._fut = self._req.request(msg)
+            cmd(self._skey)
+            return self._fut.result()
+        finally:
+            with self._fut_lock:
+                self._fut = None
 
     def _ensure_connection(self):
         pong = self._request('ping', self._com.ping)

@@ -49,7 +49,7 @@ def retryable(f):
             except RetryError as e:
                 last_e = e
 
-        raise AcadComError from last_e.real_e
+        raise AcadComError('CAD is busy now.') from last_e.real_e
 
     return wrapper
 

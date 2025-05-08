@@ -12,7 +12,7 @@
 from dataclasses import dataclass, field
 from enum import IntEnum
 from functools import cached_property
-from typing import List, Dict, Iterable, Optional
+from typing import List, Dict, Iterable, Optional, cast
 
 from sacad.acdb import (
     Database,
@@ -24,6 +24,7 @@ from sacad.acge import Vector3d
 from sacad.error import AcadTcpError
 from sacad.jsonify import Jsonify
 from sacad.result import (
+    Result,
     DBInsertResult,
     DBSelectResult,
 )
@@ -34,6 +35,7 @@ __all__ = [
     'ZoomMode',
     'SelectMode',
     'TableFlags',
+    'DBOperator',
     'DBInsert',
     'DBInsertQuery',
     'DBSelect',
@@ -107,14 +109,15 @@ class DBOperator:
         tmp, self._query.database = self._query.database, db
         return tmp
 
-    def _sumbit(self):
+    def cancel(self):
+        self._session.cancel_request()
+
+    def submit(self) -> Result:
         try:
             request = self._query.serialize()
-
             if not self._session.is_alive():
                 self._session.open()
-
-            return self._session.db_operation(request)
+            return Jsonify.deserialize(self._session.db_operation(request))
         except AcadTcpError as e:
             self._session.reset()
             raise e
@@ -150,7 +153,7 @@ class DBInsert(DBOperator):
         return DictInsertProxy(self._query.database.text_style_table)
 
     def submit(self) -> DBInsertResult:
-        return DBInsertResult.deserialize(self._sumbit())
+        return cast(DBInsertResult, super().submit())
 
 
 class DBSelect(DBOperator):
@@ -163,7 +166,7 @@ class DBSelect(DBOperator):
             self._query.database.get_block(MODEL_SPACE).entities)
 
     def submit(self) -> DBSelectResult:
-        return DBSelectResult.deserialize(self._sumbit())
+        return cast(DBSelectResult, super().submit())
 
 
 class ListInsertProxy:
