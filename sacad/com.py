@@ -124,6 +124,6 @@ class ComAcad:
                     raise RetryError(com_err)
             elif com_err.hresult == RPC_E_CALL_REJECTED:
                 raise RetryError(com_err)
-            raise AcadComError from com_err
+            raise AcadComError(com_err.strerror) from com_err
         except Exception as other_err:
-            raise AcadComError from other_err
+            raise AcadComError(other_err) from other_err
