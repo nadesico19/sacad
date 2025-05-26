@@ -14,6 +14,8 @@
 from contextlib import contextmanager
 from typing import ContextManager, List, Optional
 
+import pythoncom
+
 from sacad.acge import Vector3d
 from sacad.constant import ACAD_LATEST
 from sacad.crud import (
@@ -157,8 +159,7 @@ class Acad:
 
 
 @contextmanager
-def instant_acad(netload=True, acad_name=ACAD_LATEST, **kwargs) \
-        -> ContextManager[Acad]:
+def instant_acad(netload=True, acad_name=ACAD_LATEST, sta=False, **kwargs):
     """
     Use with statement to create an auto open/close instance of Acad.
 
@@ -171,11 +172,17 @@ def instant_acad(netload=True, acad_name=ACAD_LATEST, **kwargs) \
                     clear the user's selection set, so cause some operations
                     fail when calling Editor.SelectImplied.
     :param acad_name: version identifier defined in constant.py.
+    :param sta: initialize COM as single-thread apartment (STA). This is useful
+                when submissions are done by threads other than caller of this.
     :param kwargs: other parameters of Acad.__init__
     """
     acad = Acad(acad_name=acad_name, **kwargs)
     try:
+        if sta:
+            pythoncom.CoInitialize()
         acad.open(netload=netload)
         yield acad
     finally:
         acad.close()
+        if sta:
+            pythoncom.CoUninitialize()
