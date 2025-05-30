@@ -22,12 +22,11 @@ using AcGe = Autodesk.AutoCAD.Geometry;
 namespace SacadMgd
 {
     using BlockTable = Dictionary<string, PyWrapper<BlockTableRecord>>;
+    using GroupDict = Dictionary<string, PyWrapper<Group>>;
 
     public abstract class DbQuery
     {
-        public string query_type;
         public PyWrapper<Database> database;
-
         public abstract Result Execute();
     }
 
@@ -63,6 +62,7 @@ namespace SacadMgd
                     InsertSymbol(db, clientDb?.layer_table, result);
                     InsertSymbol(db, clientDb?.dim_style_table, result);
                     InsertDictItem(db, clientDb?.m_leader_style_dict, result);
+                    InsertDictItem(db, clientDb?.group_dict, result);
                     InsertBlocks(db, clientDb?.block_table, trans, result);
 
                     if (prompt_insertion_point == true)
@@ -198,10 +198,10 @@ namespace SacadMgd
         private void InsertBlocks(AcDb.Database db, BlockTable blockTable,
             AcDb.Transaction trans, DbInsertResult result)
         {
-            foreach (var block in blockTable.Values.Where(
-                         blk => blk.__mbr__.name != null
-                                && !blk.__mbr__.name.StartsWith("*")
-                                && !blk.__mbr__.name.StartsWith("_")))
+            foreach (var block in blockTable.Values.Where(blk =>
+                         blk.__mbr__.name != null
+                         && !blk.__mbr__.name.StartsWith("*")
+                         && !blk.__mbr__.name.StartsWith("_")))
             {
                 try
                 {
@@ -279,6 +279,7 @@ namespace SacadMgd
 
             var modelSpace = clientDb
                 .block_table[AcDb.BlockTableRecord.ModelSpace].__mbr__;
+            var reversed_group = ReverseGroup(clientDb);
             foreach (var entity in modelSpace.entities)
             {
                 try
@@ -300,6 +301,14 @@ namespace SacadMgd
                     }
 
                     result.num_inserted++;
+
+                    Group value;
+                    if (entity.__mbr__.id.HasValue &&
+                        reversed_group.TryGetValue(entity.__mbr__.id.Value,
+                            out value))
+                    {
+                        DoGrouping(newEntity, value, db);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -335,6 +344,39 @@ namespace SacadMgd
 
             doc.Editor.SetCurrentView(view);
         }
+
+        private static Dictionary<long, Group> ReverseGroup(Database db)
+        {
+            var reversed = new Dictionary<long, Group>();
+            foreach (var entry in db.GetGroupDict())
+            {
+                var group = entry.Value.__mbr__;
+                if (group.entity_ids == null) continue;
+
+                foreach (var eid in group.entity_ids)
+                {
+                    reversed[eid] = group;
+                }
+            }
+
+            return reversed;
+        }
+
+        private static void DoGrouping(AcDb.Entity entity, Group group,
+            AcDb.Database db)
+        {
+            var arxGroup = db.GetGroup(group.name);
+            try
+            {
+                arxGroup.UpgradeOpen();
+                if (!arxGroup.Has(entity))
+                    arxGroup.Append(entity.ObjectId);
+            }
+            finally
+            {
+                arxGroup.DowngradeOpen();
+            }
+        }
     }
 
     public sealed class DbSelectQuery : DbQuery
@@ -343,6 +385,7 @@ namespace SacadMgd
         public int? table_flags;
         public bool? explode_blocks;
         public List<string> block_names;
+        public List<string> group_names;
 
         public override Result Execute()
         {
@@ -366,6 +409,9 @@ namespace SacadMgd
                             break;
                         case Mode.TestEntities:
                             TestEntities(db, result);
+                            break;
+                        case Mode.GetGroups:
+                            GetGroups(db, result);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -571,6 +617,52 @@ namespace SacadMgd
             }
         }
 
+        private void GetGroups(AcDb.Database db, DbSelectResult result)
+        {
+            var trans = db.TransactionManager.TopTransaction;
+            result.db = result.db ?? PyWrapper<Database>.Create(new Database());
+
+            if (group_names?.Any() != true) return;
+            var groups = group_names
+                .Select(db.GetGroup)
+                .Where(g => g != null)
+                .ToArray();
+            var groupIds = groups
+                .Select(g => g.ObjectId)
+                .ToList();
+
+            var modelSpace = db.GetBlock(AcDb.BlockTableRecord.ModelSpace);
+            var resultModelSpace = result.db.__mbr__.GetModelSpace();
+            foreach (var eid in modelSpace)
+            {
+                var ent = (AcDb.Entity)trans.GetObject(
+                    eid, AcDb.OpenMode.ForRead);
+
+                var rids = ent.GetPersistentReactorIds();
+                if ((rids?.Count ?? 0) == 0) continue;
+
+                foreach (AcDb.ObjectId rid in rids)
+                {
+                    if (!groupIds.Contains(rid)) continue;
+
+                    var resultEntity = Entity.Convert(ent, db);
+                    if (resultEntity == null) continue;
+
+                    resultModelSpace.entities.Add(
+                        PyWrapper<Entity>.Create(resultEntity));
+                }
+            }
+
+            var resultGroupDict = result.db.__mbr__.GetGroupDict();
+            foreach (var group in groups)
+            {
+                var resultGroup = new Group();
+                resultGroup.FromArx(group, db);
+                resultGroupDict[resultGroup.name] =
+                    PyWrapper<Group>.Create(resultGroup);
+            }
+        }
+
         private static void SelectSymbols<TRecord>(
             AcDb.Database db, AcDb.ObjectId tableId,
             IDictionary<string, PyWrapper<TRecord>> table)
@@ -622,6 +714,7 @@ namespace SacadMgd
             GetTables,
             GetUserSelection,
             TestEntities,
+            GetGroups,
         }
 
         private enum TableFlags
@@ -633,6 +726,57 @@ namespace SacadMgd
             DimStyle = 0x10,
             MLeaderStyle = 0x20,
             Blocks = 0x40,
+        }
+    }
+
+    public sealed class DbDeleteQuery : DbQuery
+    {
+        public bool? delete_group_entities;
+
+        public override Result Execute()
+        {
+            var result = new DbDeleteResult();
+
+            var db = AcDb.HostApplicationServices.WorkingDatabase;
+            try
+            {
+                var clientDb = database?.__mbr__;
+
+                using (var trans = db.TransactionManager.StartTransaction())
+                {
+                    DeleteGroups(db, clientDb?.group_dict, trans, result);
+                    trans.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Util.ConsoleWriteLine(ex);
+                result.message = $"Unhandled exception: {ex.Message}";
+            }
+
+            return result;
+        }
+
+        private void DeleteGroups(AcDb.Database db, GroupDict groupDict,
+            AcDb.Transaction trans, DbDeleteResult result)
+        {
+            if (groupDict?.Any() != true) return;
+            foreach (var entry in groupDict)
+            {
+                var group = db.GetGroup(entry.Key);
+                if (delete_group_entities == true)
+                {
+                    foreach (var eid in group.GetAllEntityIds())
+                    {
+                        trans.GetObject(eid, AcDb.OpenMode.ForWrite).Erase();
+                        result.num_deleted++;
+                    }
+                }
+
+                group.UpgradeOpen();
+                group.Erase();
+                result.num_deleted++;
+            }
         }
     }
 }

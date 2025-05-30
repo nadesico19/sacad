@@ -12,7 +12,7 @@
 """A facade for user code to access features of sacad conveniently ."""
 
 from contextlib import contextmanager
-from typing import ContextManager, List, Optional
+from typing import List, Optional, Union
 
 import pythoncom
 
@@ -23,6 +23,8 @@ from sacad.crud import (
     DBInsertQuery,
     DBSelect,
     DBSelectQuery,
+    DBDelete,
+    DBDeleteQuery,
     SelectMode,
 )
 from sacad.env import available_acad
@@ -129,6 +131,19 @@ class Acad:
     def db_test_entities(self, **kwargs) -> DBSelect:
         return DBSelect(self._session, DBSelectQuery(
             mode=SelectMode.TEST_ENTITIES, **kwargs))
+
+    def db_get_groups(self, name: Union[str, List[str]], **kwargs) -> DBSelect:
+        names = [name] if isinstance(name, str) else list(name)
+        return DBSelect(self._session, DBSelectQuery(
+            mode=SelectMode.GET_GROUPS, group_names=names, **kwargs))
+
+    def db_delete(
+            self,
+            delete_group_entities: Optional[bool] = None,
+            **kwargs) -> DBDelete:
+        return DBDelete(self._session, DBDeleteQuery(
+            delete_group_entities=delete_group_entities,
+            **kwargs))
 
     def send_command(self, name, *args):
         com = self._session.com_acad

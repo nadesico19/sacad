@@ -43,4 +43,10 @@ namespace SacadMgd
     {
         public PyWrapper<Database> db;
     }
+
+    [PyType("sacad.result.DBDeleteResult")]
+    public sealed class DbDeleteResult : Result
+    {
+        public int num_deleted;
+    }
 }

@@ -10,6 +10,7 @@
  */
 
 using System;
+using System.Linq;
 using AcDb = Autodesk.AutoCAD.DatabaseServices;
 
 // ReSharper disable InconsistentNaming
@@ -103,5 +104,42 @@ namespace SacadMgd
         public override AcDb.ObjectId AddToDict(AcDb.DBObject obj,
             AcDb.Database db)
             => db.AddMLeaderStyle((AcDb.MLeaderStyle)obj, name);
+    }
+
+    [PyType("sacad.acdb.Group")]
+    public sealed class Group : DictionaryItem
+    {
+        public long[] entity_ids;
+        public bool? selectable;
+
+        public override AcDb.DBObject ToArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            obj = obj ?? new AcDb.Group();
+            var group = (AcDb.Group)obj;
+
+            if (selectable.HasValue) group.Selectable = selectable.Value;
+
+            return base.ToArx(obj, db);
+        }
+
+        public override DBObject FromArx(AcDb.DBObject obj, AcDb.Database db)
+        {
+            var group = (AcDb.Group)obj;
+
+            name = group.Name;
+            selectable = group.Selectable;
+            entity_ids = group.GetAllEntityIds()
+                .Where(eid => eid.IsValid)
+                .Select(eid => eid.OldIdPtr.ToInt64())
+                .ToArray();
+
+            return base.FromArx(obj, db);
+        }
+
+        public override AcDb.DBObject GetFromDict(AcDb.Database db)
+            => db.GetGroup(name);
+
+        public override AcDb.ObjectId AddToDict(AcDb.DBObject obj,
+            AcDb.Database db) => db.AddGroup((AcDb.Group)obj, name);
     }
 }

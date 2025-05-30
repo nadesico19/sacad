@@ -26,6 +26,7 @@ namespace SacadMgd
     using LinetypeTable = Dictionary<string, PyWrapper<LinetypeTableRecord>>;
     using TextStyleTable = Dictionary<string, PyWrapper<TextStyleTableRecord>>;
     using MLeaderStyleDict = Dictionary<string, PyWrapper<MLeaderStyle>>;
+    using GroupDict = Dictionary<string, PyWrapper<Group>>;
 
     [PyType("sacad.acdb.Database")]
     public sealed class Database
@@ -36,6 +37,7 @@ namespace SacadMgd
         public LinetypeTable linetype_table;
         public TextStyleTable text_style_table;
         public MLeaderStyleDict m_leader_style_dict;
+        public GroupDict group_dict;
 
         public BlockTable GetBlockTable() => Ensure(ref block_table);
         public DimStyleTable GetDimStyleTable() => Ensure(ref dim_style_table);
@@ -47,6 +49,8 @@ namespace SacadMgd
 
         public MLeaderStyleDict GetMLeaderStyleDict() =>
             Ensure(ref m_leader_style_dict);
+
+        public GroupDict GetGroupDict() => Ensure(ref group_dict);
 
         public BlockTableRecord GetBlockTableRecord(string name)
         {

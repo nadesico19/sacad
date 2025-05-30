@@ -12,12 +12,13 @@
 from dataclasses import dataclass, field
 from enum import IntEnum
 from functools import cached_property
-from typing import List, Dict, Iterable, Optional, cast
+from typing import List, Dict, Iterable, Optional, Union, cast
 
 from sacad.acdb import (
     Database,
     DBObject,
     ObjectId,
+    Group,
     MODEL_SPACE,
 )
 from sacad.acge import Vector3d
@@ -27,6 +28,7 @@ from sacad.result import (
     Result,
     DBInsertResult,
     DBSelectResult,
+    DBDeleteResult,
 )
 from sacad.session import Session
 from sacad.util import csharp_polymorphic_type
@@ -40,6 +42,8 @@ __all__ = [
     'DBInsertQuery',
     'DBSelect',
     'DBSelectQuery',
+    'DBDelete',
+    'DBDeleteQuery',
 ]
 
 
@@ -53,6 +57,7 @@ class SelectMode(IntEnum):
     GET_TABLES = 0
     GET_USER_SELECTION = 1
     TEST_ENTITIES = 2
+    GET_GROUPS = 3
 
 
 class TableFlags(IntEnum):
@@ -83,6 +88,7 @@ class DBInsertQuery(DBQuery):
 class DBSelectQuery(DBQuery):
     mode: Optional[SelectMode] = None
     table_flags: Optional[int] = None
+    group_names: Optional[List[str]] = None
 
     # SelectMode.GET_TABLES (only if TableFlags.MODEL_SPACE is specified) and
     # SelectMode.GET_USER_SELECTION will observe this field to explode block
@@ -94,6 +100,11 @@ class DBSelectQuery(DBQuery):
     # with "*" or "_"), use an empty list. If None is used, nothing will be
     # selected.
     block_names: Optional[List[str]] = None
+
+
+@dataclass
+class DBDeleteQuery(DBQuery):
+    delete_group_entities: Optional[bool] = None
 
 
 class DBOperator:
@@ -169,6 +180,22 @@ class DBSelect(DBOperator):
         return cast(DBSelectResult, super().submit())
 
 
+class DBDelete(DBOperator):
+    def __init__(self, session: Session, query: DBDeleteQuery):
+        super().__init__(session, query)
+
+    def delete_group(self, name: Union[str, List[str]]):
+        names = [name] if isinstance(name, str) else name
+        db = self._query.database
+        for n in names:
+            if n in db.group_dict:
+                continue
+            db.group_dict[n] = Group()
+
+    def submit(self) -> DBDeleteResult:
+        return cast(DBDeleteResult, super().submit())
+
+
 class ListInsertProxy:
     def __init__(self, objects: List[DBObject]):
         self._lst = objects
@@ -209,3 +236,5 @@ DBInsertQuery = csharp_polymorphic_type("SacadMgd.DbInsertQuery, SacadMgd")(
     DBInsertQuery)
 DBSelectQuery = csharp_polymorphic_type("SacadMgd.DbSelectQuery, SacadMgd")(
     DBSelectQuery)
+DBDeleteQuery = csharp_polymorphic_type("SacadMgd.DbDeleteQuery, SacadMgd")(
+    DBDeleteQuery)

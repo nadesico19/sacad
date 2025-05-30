@@ -22,6 +22,7 @@ __all__ = [
     'Status',
     'DBInsertResult',
     'DBSelectResult',
+    'DBDeleteResult',
 ]
 
 
@@ -50,3 +51,8 @@ class DBInsertResult(Result):
 @dataclass
 class DBSelectResult(Result):
     db: Optional[Database] = None
+
+
+@dataclass
+class DBDeleteResult(Result):
+    num_deleted: int = 0

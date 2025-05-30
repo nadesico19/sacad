@@ -26,7 +26,6 @@ __all__ = [
     # 'PAPER_SPACE',
     'ObjectId',
     'TDBObject',
-    'Database',
     'LineWeight',
     'TextHorizontalMode',
     'TextVerticalMode',
@@ -82,6 +81,9 @@ __all__ = [
     'LinetypeTableRecord',
     'FontDescriptor',
     'TextStyleTableRecord',
+    'MLeaderStyle',
+    'Group',
+    'Database',
     'Extents3d',
 ]
 
@@ -2092,6 +2094,13 @@ class MLeaderStyle(DBObject):
 
 
 @dataclass
+class Group(DBObject):
+    name: Optional[str] = None
+    entity_ids: Optional[List[ObjectId]] = None
+    selectable: Optional[bool] = None
+
+
+@dataclass
 class Database(Jsonify):
     block_table: Dict[str, BlockTableRecord] = field(default_factory=dict)
     dim_style_table: Dict[str, DimStyleTableRecord] = field(
@@ -2101,6 +2110,7 @@ class Database(Jsonify):
     text_style_table: Dict[str, TextStyleTableRecord] = field(
         default_factory=dict)
     m_leader_style_dict: Dict[str, MLeaderStyle] = field(default_factory=dict)
+    group_dict: Dict[str, Group] = field(default_factory=dict)
 
     def get_block(self, name):
         if name not in self.block_table:
