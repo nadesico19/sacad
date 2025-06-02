@@ -764,6 +764,8 @@ namespace SacadMgd
             foreach (var entry in groupDict)
             {
                 var group = db.GetGroup(entry.Key);
+                if (group == null) continue;
+
                 if (delete_group_entities == true)
                 {
                     foreach (var eid in group.GetAllEntityIds())
