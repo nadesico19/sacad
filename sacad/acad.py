@@ -95,6 +95,7 @@ class Acad:
 
         This operation can only be performed while the connection is valid.
         """
+        self.open(netload=False)
         self._session.com_acad.activate()
 
     def db_insert(
