@@ -77,10 +77,10 @@ library is described in the [building instructions](BUILDING.md).
 # ~~Roadmap~~
 
 ~~In the first phase, I will focus on the CRUD of AutoCAD's document database,~~
-~~which is essential for drawing and modifying tasks. More features like document~[]()~
-~~management, layout, printing, etc, will come in later phases.~~
+~~which is essential for drawing and modifying tasks. More features like document~~
+~~management, layout, printing, etc., will come in later phases.~~
 
-~~There is a [feature list](FEATURES.md), including what is already implemented,~~
+~~There is a feature list, including what is already implemented,~~
 ~~or in process, or in the to-do list.~~
 
 # Apology (2025/4)

@@ -212,20 +212,41 @@ namespace SacadMgd
 
                 if (o.dimblk != null)
                 {
-                    var blkId = db.GetDimblk("DIMBLK", o.dimblk);
-                    if (blkId.IsValid) dim.Dimblk = blkId;
+                    if (o.dimblk == string.Empty)
+                    {
+                        dim.Dimblk = AcDb.ObjectId.Null;
+                    }
+                    else
+                    {
+                        var blkId = db.GetDimblk("DIMBLK", o.dimblk);
+                        if (blkId.IsValid) dim.Dimblk = blkId;
+                    }
                 }
 
                 if (o.dimblk1 != null)
                 {
-                    var blkId = db.GetDimblk("DIMBLK1", o.dimblk1);
-                    if (blkId.IsValid) dim.Dimblk1 = blkId;
+                    if (o.dimblk1 == string.Empty)
+                    {
+                        dim.Dimblk1 = AcDb.ObjectId.Null;
+                    }
+                    else
+                    {
+                        var blkId = db.GetDimblk("DIMBLK1", o.dimblk1);
+                        if (blkId.IsValid) dim.Dimblk1 = blkId;
+                    }
                 }
 
                 if (o.dimblk2 != null)
                 {
-                    var blkId = db.GetDimblk("DIMBLK2", o.dimblk2);
-                    if (blkId.IsValid) dim.Dimblk2 = blkId;
+                    if (o.dimblk2 == string.Empty)
+                    {
+                        dim.Dimblk2 = AcDb.ObjectId.Null;
+                    }
+                    else
+                    {
+                        var blkId = db.GetDimblk("DIMBLK2", o.dimblk2);
+                        if (blkId.IsValid) dim.Dimblk2 = blkId;
+                    }
                 }
 
                 if (o.dimcen.HasValue) dim.Dimcen = o.dimcen.Value;
