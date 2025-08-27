@@ -125,9 +125,21 @@ class Acad:
         return DBSelect(self._session, DBSelectQuery(
             mode=SelectMode.GET_TABLES, table_flags=table_flags, **kwargs))
 
-    def db_get_user_selection(self, **kwargs) -> DBSelect:
+    def db_get_user_selection(
+            self, by_prompt: bool = False, **kwargs) -> DBSelect:
+        """
+        Create a transaction for getting user-selected entities.
+
+        :param by_prompt: when True is specified, AutoCAD show prompt message
+                          to ask user to select a set of entities. Unlike the
+                          default behavior of pick first (False), AutoCAD will
+                          block until user confirm the selection.
+        :param kwargs: other parameters of DBSelectQuery.__init__.
+        """
         return DBSelect(self._session, DBSelectQuery(
-            mode=SelectMode.GET_USER_SELECTION, **kwargs))
+            mode=SelectMode.GET_USER_SELECTION,
+            select_by_prompt=by_prompt,
+            **kwargs))
 
     def db_test_entities(self, **kwargs) -> DBSelect:
         return DBSelect(self._session, DBSelectQuery(

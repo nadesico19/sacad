@@ -383,9 +383,10 @@ namespace SacadMgd
     {
         public Mode? mode;
         public int? table_flags;
+        public List<string> group_names;
         public bool? explode_blocks;
         public List<string> block_names;
-        public List<string> group_names;
+        public bool? select_by_prompt;
 
         public override Result Execute()
         {
@@ -574,13 +575,25 @@ namespace SacadMgd
             var editor = AcAp.Application.DocumentManager.MdiActiveDocument
                 .Editor;
 
-            var selected = editor.SelectImplied();
-            if (selected.Status != AcEi.PromptStatus.OK)
+            AcEi.PromptSelectionResult selected;
+            if (select_by_prompt == true)
             {
-                result.status = Status.Failure;
-                result.message = "None of entities is selected.";
-
-                return;
+                var option = new AcEi.PromptSelectionOptions
+                {
+                    MessageForAdding =
+                        "Please select entities for opertation"
+                };
+                selected = editor.GetSelection(option);
+            }
+            else
+            {
+                selected = editor.SelectImplied();
+                if (selected.Status != AcEi.PromptStatus.OK)
+                {
+                    result.status = Status.Failure;
+                    result.message = "None of entities is selected.";
+                    return;
+                }
             }
 
             var modelSpace = result.db.__mbr__.GetModelSpace();

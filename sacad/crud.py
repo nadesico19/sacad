@@ -101,6 +101,9 @@ class DBSelectQuery(DBQuery):
     # selected.
     block_names: Optional[List[str]] = None
 
+    # Observed by SelectMode.GET_USER_SELECTION.
+    select_by_prompt: Optional[bool] = None
+
 
 @dataclass
 class DBDeleteQuery(DBQuery):
