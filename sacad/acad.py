@@ -185,6 +185,10 @@ class Acad:
         """
         return self._session.acad_name
 
+    @property
+    def com(self):
+        return self._session.com_acad
+
 
 @contextmanager
 def instant_acad(netload=True, acad_name=ACAD_LATEST, sta=False, **kwargs):

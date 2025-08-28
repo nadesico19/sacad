@@ -58,7 +58,10 @@ namespace SacadMgd
             {
                 block_table[name] = PyWrapper<BlockTableRecord>
                     .Create(new BlockTableRecord
-                        { entities = new List<PyWrapper<Entity>>() });
+                    {
+                        name = "*MODEL_SPACE",
+                        entities = new List<PyWrapper<Entity>>()
+                    });
             }
 
             return block_table[name].__mbr__;

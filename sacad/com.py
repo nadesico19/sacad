@@ -61,6 +61,10 @@ class ComAcad:
         self.retry_delay = retry_delay
         self.max_retry_count = max_retry_count
 
+    @property
+    def app(self):
+        return self._acad
+
     @retryable
     def show(self):
         try:
@@ -127,3 +131,6 @@ class ComAcad:
             raise AcadComError(com_err.strerror) from com_err
         except Exception as other_err:
             raise AcadComError(other_err) from other_err
+
+    def get_real(self, prompt='Please input a real number: '):
+        return self._acad.ActiveDocument.Utility.GetReal(prompt)

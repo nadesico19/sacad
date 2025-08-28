@@ -757,6 +757,7 @@ namespace SacadMgd
 
                 using (var trans = db.TransactionManager.StartTransaction())
                 {
+                    DeleteEntities(db, clientDb?.block_table, trans, result);
                     DeleteGroups(db, clientDb?.group_dict, trans, result);
                     trans.Commit();
                 }
@@ -768,6 +769,23 @@ namespace SacadMgd
             }
 
             return result;
+        }
+
+        private void DeleteEntities(AcDb.Database db, BlockTable blockTable,
+            AcDb.Transaction trans, DbDeleteResult result)
+        {
+            foreach (var block in blockTable.Values)
+            {
+                foreach (var entity in block.__mbr__.entities)
+                {
+                    if (!entity.__mbr__.id.HasValue) continue;
+                    var eid =
+                        new AcDb.ObjectId(new IntPtr(entity.__mbr__.id.Value));
+                    if (!eid.IsValid) continue;
+                    trans.GetObject(eid, AcDb.OpenMode.ForWrite).Erase();
+                    result.num_deleted++;
+                }
+            }
         }
 
         private void DeleteGroups(AcDb.Database db, GroupDict groupDict,
