@@ -117,6 +117,8 @@ class _VectorBase(tuple, Jsonify):
 
 class Vector2d(_VectorBase):
     def __new__(cls, x: Number = 0.0, y: Number = 0.0, _=0.0) -> 'Vector2d':
+        if isinstance(x, tuple):  # handle multiprocessing.
+            return super().__new__(cls, x)
         return super().__new__(cls, (float(x), float(y)))
 
     def __matmul__(self, other: 'Vector2d') -> float:
@@ -134,6 +136,8 @@ class Vector2d(_VectorBase):
 class Vector3d(_VectorBase):
     def __new__(cls, x: Number = 0.0, y: Number = 0.0, z: Number = 0.0
                 ) -> 'Vector3d':
+        if isinstance(x, tuple):  # handle multiprocessing.
+            return super().__new__(cls, x)
         return super().__new__(cls, (float(x), float(y), float(z)))
 
     def __matmul__(self, other: 'Vector3d') -> 'Vector3d':
