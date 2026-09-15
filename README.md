@@ -38,6 +38,9 @@ work life with AutoCAD.
 I will try my best to bring as many features as I can, based on ObjectARX's
 Managed Wrapper Classes, into this library.
 
+See [Features](FEATURES.md) for a detailed overview of the currently supported
+capabilities.
+
 # Example
 
 ```python
