@@ -41,6 +41,8 @@ Managed Wrapper Classes, into this library.
 See [Features](FEATURES.md) for a detailed overview of the currently supported
 capabilities.
 
+See the [Tutorial](TUTORIAL.md) for practical, end-to-end examples.
+
 # Example
 
 ```python
