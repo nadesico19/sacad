@@ -24,6 +24,7 @@ __all__ = [
     'ACAD_2021',
     'ACAD_2022',
     'ACAD_2023',
+    'ACAD_2024',
     'ACAD_LATEST',
 ]
 
@@ -41,4 +42,5 @@ ACAD_2020 = '2020'
 ACAD_2021 = '2021'
 ACAD_2022 = '2022'
 ACAD_2023 = '2023'
+ACAD_2024 = '2024'
 ACAD_LATEST = 'LATEST'
