@@ -38,6 +38,7 @@ ACAD_NAME_PROGID_MAP = {
     '2021': 'AutoCAD.Application.24',
     '2022': 'AutoCAD.Application.24.1',
     '2023': 'AutoCAD.Application.24.2',
+    '2024': 'AutoCAD.Application.24.3',
 }
 
 ACAD_VERSION_NAME_MAP = {
@@ -55,6 +56,7 @@ ACAD_VERSION_NAME_MAP = {
     'R24.0': '2021',
     'R24.1': '2022',
     'R24.2': '2023',
+    'R24.3': '2024',
 }
 
 
